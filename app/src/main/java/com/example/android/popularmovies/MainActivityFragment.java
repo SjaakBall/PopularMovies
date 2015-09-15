@@ -77,7 +77,7 @@ public class MainActivityFragment extends Fragment {
 
         gridView = (GridView) rootView.findViewById(R.id.gridview);
         imageAdapter = new ImageAdapter(this.getActivity());
-        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_STATE)){
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_STATE)) {
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
         }
         imageAdapter.setMovies(movieList);
@@ -99,9 +99,9 @@ public class MainActivityFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings){
+        if (id == R.id.action_settings) {
             updateMovies();
-            startActivity(new Intent(this.getActivity(), SettingsActivity.class));
+//            startActivity(new Intent(this.getActivity(), SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -136,7 +136,15 @@ public class MainActivityFragment extends Fragment {
         protected String[] doInBackground(String... params) {
 
 //            Log.v(LOG_TAG, "movie_api_key: " + PERSONAL_API_KEY);
-//            Log.v(LOG_TAG, "sorting on: " + params[0]);
+            String sorting = params[0];
+            Log.v(LOG_TAG, "sorting on: " + sorting);
+            if (sorting == null || sorting.length() == 0) {
+                SharedPreferences sharedPrefs =
+                        PreferenceManager.getDefaultSharedPreferences(getActivity());
+                sorting = sharedPrefs.getString(
+                        getString(R.string.pref_sort_most_popular),
+                        getString(R.string.pref_sort_default));
+            }
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -152,7 +160,7 @@ public class MainActivityFragment extends Fragment {
                 final String API_KEY = "api_key";
 
                 Uri builtUri = Uri.parse(MOVIESDB_BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, params[0])
+                        .appendQueryParameter(QUERY_PARAM, sorting)
                         .appendQueryParameter(API_KEY, PERSONAL_API_KEY)
                         .build();
 
