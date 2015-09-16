@@ -101,7 +101,7 @@ public class MainActivityFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             updateMovies();
-//            startActivity(new Intent(this.getActivity(), SettingsActivity.class));
+            startActivity(new Intent(this.getActivity(), SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
