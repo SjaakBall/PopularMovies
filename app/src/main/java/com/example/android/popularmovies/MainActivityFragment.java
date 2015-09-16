@@ -60,7 +60,7 @@ public class MainActivityFragment extends Fragment {
             gridView.setAdapter(imageAdapter);
         } else {
             movieList = new ArrayList<Movie>();
-            updateMovies();
+//            updateMovies();
         }
         setHasOptionsMenu(true);
     }
@@ -105,6 +105,12 @@ public class MainActivityFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateMovies();
     }
 
     @Override
