@@ -2,6 +2,7 @@ package com.example.android.popularmovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -11,9 +12,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "FLOW MainActivity.onCreate");
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null){
-            getSupportFragmentManager().beginTransaction().add(R.id.container, new MainActivityFragment(), MOVIESFRAGMENT_TAG).commit();
-        }
     }
 }

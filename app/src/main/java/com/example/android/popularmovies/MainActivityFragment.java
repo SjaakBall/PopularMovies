@@ -1,13 +1,13 @@
 package com.example.android.popularmovies;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,6 +47,8 @@ public class MainActivityFragment extends Fragment {
     private ImageAdapter imageAdapter;
     private GridView gridView;
     private List<Movie> movieList = null;
+    boolean mDualPane;
+    int mCurCheckPosition = 0;
 
     public MainActivityFragment() {
     }
@@ -54,15 +56,22 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gridView = (GridView) this.getActivity().findViewById(R.id.gridview);
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreate");
+//        gridView = (GridView) this.getActivity().findViewById(R.id.main_list_gridview);
         if (savedInstanceState != null) {
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
-            gridView.setAdapter(imageAdapter);
+//            gridView.setAdapter(imageAdapter);
         } else {
             movieList = new ArrayList<Movie>();
-//            updateMovies();
+            updateMovies();
         }
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateMovies();
     }
 
     @Override
@@ -73,9 +82,10 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        gridView = (GridView) rootView.findViewById(R.id.gridview);
+        gridView = (GridView) rootView.findViewById(R.id.main_list_gridview);
         imageAdapter = new ImageAdapter(this.getActivity());
         if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_STATE)) {
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
@@ -114,9 +124,81 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.onActivityCreated");
+
+        // Populate list with our static array of titles.
+//        setListAdapter(new ArrayAdapter<String>(getActivity(),
+//                android.R.layout.simple_list_item_activated_1, Shakespeare.TITLES));
+
+        // Check to see if we have a frame in which to embed the details
+        // fragment directly in the containing UI.
+        View detailsFrame = getActivity().findViewById(R.id.tb_details_fragment);
+        mDualPane = detailsFrame != null && detailsFrame.getVisibility() == View.VISIBLE;
+
+        if (savedInstanceState != null) {
+            // Restore last state for checked position.
+            mCurCheckPosition = savedInstanceState.getInt("curChoice", 0);
+        }
+
+        if (mDualPane) {
+            // Make sure our UI is in the correct state.
+            showDetails(mCurCheckPosition);
+        }
+
+    }
+
+    /**
+     * Helper function to show the details of a selected item, either by
+     * displaying a fragment in-place in the current UI, or starting a
+     * whole new activity in which it is displayed.
+     */
+    private void showDetails(int index) {
+        mCurCheckPosition = index;
+
+        if (mDualPane) {
+
+            // Check what fragment is currently shown, replace if needed.
+            DetailActivityFragment details = (DetailActivityFragment) getFragmentManager().findFragmentById(R.id.tb_details_fragment);
+            if (details == null || details.getShownIndex() != index) {
+                // Make new fragment to show this selection.
+                details = DetailActivityFragment.newInstance(index);
+
+                // Execute a transaction, replacing any existing fragment
+                // with this one inside the frame.
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                if (index == 0) {
+                    ft.replace(R.id.tb_details_fragment, details);
+                }
+//                else {
+//                    ft.replace(R.id.a_item, details);
+//                }
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft.commit();
+            }
+
+        } else {
+            // Otherwise we need to launch a new activity to display
+            // the dialog fragment with selected text.
+            Intent intent = new Intent();
+            intent.setClass(getActivity(), DetailActivity.class);
+            intent.putExtra("index", index);
+            startActivity(intent);
+        }
+
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(MOVIES_STATE, (ArrayList<? extends Parcelable>) movieList);
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.onSaveInstanceState");
+        outState.putInt("curChoice", mCurCheckPosition);
     }
 
     private void updateMovies() {
@@ -237,7 +319,7 @@ public class MainActivityFragment extends Fragment {
                 movieList = new ArrayList<Movie>();
                 for (int i = 0; i < results.length; i++) {
                     String movieStr = results[i];
-//                    Log.v(LOG_TAG, "movie: " + movieStr);
+                    Log.v(LOG_TAG, "movie: " + movieStr);
                     List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                     Movie movie = new Movie(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
                     movieList.add(movie);
@@ -266,11 +348,11 @@ public class MainActivityFragment extends Fragment {
             for (int i = 0; i < moviesArray.length(); i++) {
 
                 JSONObject movieJSONObject = moviesArray.getJSONObject(i);
-                String original_title = movieJSONObject.getString(ORIGINAL_TITLE);
-                String poster_path = movieJSONObject.getString(POSTER_PATH);
-                String overview = movieJSONObject.getString(OVERVIEW);
-                String vote_average = movieJSONObject.getString(VOTE_AVERAGE);
-                String release_date = movieJSONObject.getString(RELEASE_DATE);
+                String original_title = movieJSONObject.getString(ORIGINAL_TITLE) != null && movieJSONObject.getString(ORIGINAL_TITLE).length() > 0 ? movieJSONObject.getString(ORIGINAL_TITLE) : "no original poster value";
+                String poster_path = movieJSONObject.getString(POSTER_PATH) != null && movieJSONObject.getString(POSTER_PATH).length() > 0 ? movieJSONObject.getString(POSTER_PATH) : "no poster path value";;
+                String overview = movieJSONObject.getString(OVERVIEW) != null && movieJSONObject.getString(OVERVIEW).length() > 0 ? movieJSONObject.getString(OVERVIEW) : "no overview value";;
+                String vote_average = movieJSONObject.getString(VOTE_AVERAGE) != null && movieJSONObject.getString(VOTE_AVERAGE).length() > 0 ? movieJSONObject.getString(VOTE_AVERAGE) : "no vote average value";;
+                String release_date = movieJSONObject.getString(RELEASE_DATE) != null && movieJSONObject.getString(RELEASE_DATE).length() > 0 ? movieJSONObject.getString(RELEASE_DATE) : "no release date value";;
                 resultStrs[i] = original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
             }
 
