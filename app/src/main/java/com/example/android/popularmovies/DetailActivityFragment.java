@@ -71,7 +71,7 @@ public class DetailActivityFragment extends Fragment {
             ((TextView) rootView.findViewById(R.id.detail_user_rating)).setText(movie.getVoteAverage());
             ((TextView) rootView.findViewById(R.id.detail_release_date)).setText(movie.getReleaseDate());
             ImageView imageView = (ImageView) rootView.findViewById(R.id.detail_imageView);
-            Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath()).into(imageView);
+            Picasso.with(getActivity()).load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath()).into(imageView);
         }
 
         return rootView;
