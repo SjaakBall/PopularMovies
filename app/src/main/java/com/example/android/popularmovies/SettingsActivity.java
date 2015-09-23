@@ -5,15 +5,19 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 /**
  * Created by JanHerman on 15/09/2015.
  */
 public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
 
+    private final String LOG_TAG = SettingsActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "FLOW SettingsActivity.onCreate");
 
         addPreferencesFromResource(R.xml.pref_general);
 
@@ -34,6 +38,8 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
+        Log.v(LOG_TAG, "FLOW SettingsActivity.onPreferenceChange");
+
         String stringValue = newValue.toString();
 
         if (preference instanceof ListPreference) {

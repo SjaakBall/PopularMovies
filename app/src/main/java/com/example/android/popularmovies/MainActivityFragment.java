@@ -313,7 +313,7 @@ public class MainActivityFragment extends Fragment {
                 movieList = new ArrayList<Movie>();
                 for (int i = 0; i < results.length; i++) {
                     String movieStr = results[i];
-                    Log.v(LOG_TAG, "movie: " + movieStr);
+//                    Log.v(LOG_TAG, "movie: " + movieStr);
                     List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                     Movie movie = new Movie(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
                     movieList.add(movie);
