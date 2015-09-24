@@ -88,8 +88,6 @@ public class DetailActivityFragment extends Fragment {
         ImageView imageView = (ImageView) rootView.findViewById(R.id.detail_imageView);
         Picasso.with(getActivity())
                 .load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath())
-                .placeholder(R.drawable.sample_0)
-                .error(R.drawable.sample_0)
                 .into(imageView);
     }
 
