@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <!-- "Fragment list" -->
-    <fragment class="com.example.android.popularmovies.DetailActivityFragment"
+    <fragment
+        class="com.example.android.popularmovies.DetailActivityFragment"
         android:id="@+id/details_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

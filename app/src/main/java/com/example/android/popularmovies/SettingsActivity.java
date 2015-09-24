@@ -55,7 +55,6 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
             preference.setSummary(stringValue);
         }
 
-//        startActivity(new Intent(this, MainActivity.class));
         return true;
     }
 }

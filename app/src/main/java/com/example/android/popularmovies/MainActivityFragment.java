@@ -122,7 +122,7 @@ public class MainActivityFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            updateMovies();
+//            updateMovies();
             startActivity(new Intent(this.getActivity(), SettingsActivity.class));
             return true;
         }
@@ -133,7 +133,7 @@ public class MainActivityFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.v(LOG_TAG, "FLOW MainActivityFragment.onResume");
-//        updateMovies();
+        updateMovies();
     }
 
     @Override
@@ -196,6 +196,12 @@ public class MainActivityFragment extends Fragment {
             startActivity(intent);
         }
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.onDestroy");
     }
 
     @Override

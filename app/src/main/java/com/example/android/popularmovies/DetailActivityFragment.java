@@ -92,4 +92,10 @@ public class DetailActivityFragment extends Fragment {
                 .error(R.drawable.sample_0)
                 .into(imageView);
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.onDestroy");
+    }
 }

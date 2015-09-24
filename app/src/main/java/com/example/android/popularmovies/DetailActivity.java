@@ -34,4 +34,9 @@ public class DetailActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "FLOW DetailActivity.onDestroy");
+    }
 }

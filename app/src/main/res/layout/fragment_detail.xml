@@ -4,7 +4,7 @@
     android:id="@+id/details_fragment_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.android.popularmovies.DetailActivity">
+    tools:context="com.example.android.popularmovies.DetailActivityFragment">
 
     <TextView
         android:id="@+id/detail_title"
@@ -20,56 +20,69 @@
         android:textSize="35dp" />
 
     <LinearLayout
+        android:id="@+id/linlay1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@+id/detail_title"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal"
+        android:layout_centerInParent="true"
+        android:gravity="top"
+        android:orientation="vertical"
         android:weightSum="1">
 
-        <ImageView
-            android:id="@+id/detail_imageView"
-            android:layout_width="100dp"
-            android:layout_height="fill_parent"
-            android:layout_gravity="center_vertical"
-            android:contentDescription="image"
-            android:src="@drawable/sample_0" />
-
         <LinearLayout
+            android:id="@+id/linlay2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/detail_plot_synopsis"
-                android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/detail_title"
+            android:layout_centerInParent="true"
+            android:gravity="top"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <ImageView
+                android:id="@+id/detail_imageView"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="15dp"
-                android:paddingTop="15dp"
-                android:text="Plot Synopsis"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="14sp" />
+                android:layout_gravity="top"
+                android:contentDescription="image"
+                android:paddingLeft="10dp"
+                android:paddingTop="5dp" />
+
+            <LinearLayout
+                android:id="@+id/linlay3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/detail_user_rating"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="15dp"
+                    android:paddingTop="15dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <TextView
+                    android:id="@+id/detail_release_date"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="15dp"
+                    android:paddingTop="15dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+            </LinearLayout>
 
 
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="15dp"
-                android:paddingTop="15dp"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="User Rating"
-                android:id="@+id/detail_user_rating" />
-
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="15dp"
-                android:paddingTop="15dp"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Release Date"
-                android:id="@+id/detail_release_date" />
         </LinearLayout>
 
-
+        <TextView
+            android:id="@+id/detail_plot_synopsis"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingTop="15dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="14sp"
+            android:paddingRight="15dp" />
     </LinearLayout>
 
 </RelativeLayout>

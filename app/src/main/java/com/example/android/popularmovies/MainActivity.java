@@ -14,4 +14,10 @@ public class MainActivity extends AppCompatActivity {
         Log.v(LOG_TAG, "FLOW MainActivity.onCreate");
         setContentView(R.layout.activity_main);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "FLOW MainActivity.onDestroy");
+    }
 }
