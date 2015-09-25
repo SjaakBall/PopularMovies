@@ -13,9 +13,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-/**
- * Created by JanHerman on 17/09/2015.
- */
 public class DetailActivityFragment extends Fragment {
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private final static String MOVIE_STATE = "movie_state";
@@ -39,7 +36,6 @@ public class DetailActivityFragment extends Fragment {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.newInstance");
         DetailActivityFragment f = new DetailActivityFragment();
 
-        // Supply index input as an argument.
         Bundle args = new Bundle();
         args.putInt("index", index);
         args.putParcelable(MOVIE_STATE, movie);
@@ -48,21 +44,13 @@ public class DetailActivityFragment extends Fragment {
         return f;
     }
 
-    public int getShownIndex() {
-        int index = 0;
-        if (getArguments() != null) {
-            index = getArguments().getInt("index", 0);
-        }
-        return index;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView");
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        if (getArguments() != null) {
+        if (getArguments() != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             movie = getArguments().getParcelable(MOVIE_STATE);
             Log.v(LOG_TAG, "onCreateView OriginalTitle From Parcelable: " + movie.getOriginalTitle());
             populateView(rootView, movie);
@@ -89,11 +77,5 @@ public class DetailActivityFragment extends Fragment {
         Picasso.with(getActivity())
                 .load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath())
                 .into(imageView);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.v(LOG_TAG, "FLOW DetailActivityFragment.onDestroy");
     }
 }

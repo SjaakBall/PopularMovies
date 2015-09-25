@@ -33,17 +33,12 @@ public class ImageAdapter extends BaseAdapter {
         return 0;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         if (convertView == null) {
-            // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
             imageView.setAdjustViewBounds(true);
             imageView.setPadding(0, 0, 0, 0);
-//            imageView.setLayoutParams(new GridView.LayoutParams(200, 300));
-//            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//            imageView.setPadding(8, 8, 8, 8);
         } else {
             imageView = (ImageView) convertView;
         }
@@ -54,8 +49,6 @@ public class ImageAdapter extends BaseAdapter {
 
         return imageView;
     }
-
-
 
     public void setMovies(List<Movie> movies) {
         this.movies = movies;

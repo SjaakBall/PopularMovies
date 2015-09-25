@@ -7,9 +7,6 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-/**
- * Created by JanHerman on 15/09/2015.
- */
 public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
 
     private final String LOG_TAG = SettingsActivity.class.getSimpleName();
@@ -25,12 +22,10 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     }
 
     private void bindPreferenceSummaryToValue(Preference preference) {
-        // Set the listener to watch for value changes.
+
         preference.setOnPreferenceChangeListener(this);
 
-        // Trigger the listener immediately with the preference's
-        // current value.
-        onPreferenceChange(preference,
+         onPreferenceChange(preference,
                 PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
                         .getString(preference.getKey(), ""));
@@ -43,15 +38,12 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
         String stringValue = newValue.toString();
 
         if (preference instanceof ListPreference) {
-            // For list preferences, look up the correct display value in
-            // the preference's 'entries' list (since they have separate labels/values).
             ListPreference listPreference = (ListPreference) preference;
             int prefIndex = listPreference.findIndexOfValue(stringValue);
             if (prefIndex >= 0) {
                 preference.setSummary(listPreference.getEntries()[prefIndex]);
             }
         } else {
-            // For other preferences, set the summary to the value's simple string representation.
             preference.setSummary(stringValue);
         }
 

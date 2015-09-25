@@ -37,9 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class MainActivityFragment extends Fragment {
 
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
@@ -72,7 +69,6 @@ public class MainActivityFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.v(LOG_TAG, "FLOW MainActivityFragment.onStart");
-//        updateMovies();
     }
 
     @Override
@@ -101,6 +97,7 @@ public class MainActivityFragment extends Fragment {
                 //which frame is shown
                 if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE &&
                         getFragmentManager().findFragmentById(R.id.tb_details_fragment) != null) {
+                    Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreateView onItemClick landscape");
                     DetailActivityFragment details = DetailActivityFragment.newInstance(position, movie);
                     FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
                     fragmentTransaction.replace(R.id.tb_details_fragment, details);
@@ -109,7 +106,7 @@ public class MainActivityFragment extends Fragment {
                 } else {
                     Intent intent = new Intent(getActivity(), DetailActivity.class).putExtra(MOVIE_STATE, movie);
                     startActivity(intent);
-                    Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreateView onItemClick");
+                    Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreateView onItemClick portrait");
                     Toast.makeText(MainActivityFragment.this.getActivity(), "" + position, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -122,7 +119,6 @@ public class MainActivityFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-//            updateMovies();
             startActivity(new Intent(this.getActivity(), SettingsActivity.class));
             return true;
         }
@@ -154,31 +150,21 @@ public class MainActivityFragment extends Fragment {
             mCurCheckPosition = savedInstanceState.getInt("curChoice", 0);
         }
 
-//        if (mDualPane) {
-//            showDetails(mCurCheckPosition);
-//        }
-
     }
 
-    /**
-     * Helper function to show the details of a selected item, either by
-     * displaying a fragment in-place in the current UI, or starting a
-     * whole new activity in which it is displayed.
-     */
     private void showDetails(int index) {
         mCurCheckPosition = index;
         Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails & index : " + index);
 
         if (mDualPane) {
 
-            DetailActivityFragment details = (DetailActivityFragment) getFragmentManager().findFragmentById(R.id.tb_details_fragment);
-            Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails mDualPane details.getShownIndex(): " + details.getShownIndex());
-            if (details != null || details.getShownIndex() != index) {
+            DetailActivityFragment details = (DetailActivityFragment) getFragmentManager().findFragmentById(R.id.details_fragment_container);
+            Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails mDualPane details: " + details);
+            if (details == null) {
                 Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails mDualPane: details == null || details.getShownIndex() != index");
                 // Make new fragment to show this selection.
                 details = DetailActivityFragment.newInstance(index, imageAdapter.getMovies().get(index));
 
-                // Execute a transaction, replacing any existing fragment with this one inside the frame.
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 if (index == 0) {
                     ft.replace(R.id.tb_details_fragment, details);
@@ -199,12 +185,6 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.v(LOG_TAG, "FLOW MainActivityFragment.onDestroy");
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.v(LOG_TAG, "FLOW MainActivityFragment.onSaveInstanceState");
@@ -219,10 +199,6 @@ public class MainActivityFragment extends Fragment {
         fetchMoviesTask.execute(sorting);
     }
 
-
-    /**
-     * Created by JanHerman on 12/09/2015.
-     */
     public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
@@ -319,7 +295,6 @@ public class MainActivityFragment extends Fragment {
                 movieList = new ArrayList<Movie>();
                 for (int i = 0; i < results.length; i++) {
                     String movieStr = results[i];
-//                    Log.v(LOG_TAG, "movie: " + movieStr);
                     List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                     Movie movie = new Movie(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
                     movieList.add(movie);
@@ -329,7 +304,8 @@ public class MainActivityFragment extends Fragment {
             imageAdapter.setMovies(movieList);
             gridView.setAdapter(imageAdapter);
             imageAdapter.notifyDataSetChanged();
-            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                    && movieList != null && movieList.size() > 0) {
                 showDetails(mCurCheckPosition);
             }
         }

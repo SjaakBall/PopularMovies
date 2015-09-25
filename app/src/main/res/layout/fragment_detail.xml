@@ -1,88 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/details_fragment_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.android.popularmovies.DetailActivityFragment">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/detail_title"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="false"
-        android:background="#0ead7e"
-        android:gravity="center_vertical"
-        android:paddingLeft="20dp"
-        android:textColor="#fff"
-        android:textSize="35dp" />
-
-    <LinearLayout
-        android:id="@+id/linlay1"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/details_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/detail_title"
-        android:layout_centerInParent="true"
-        android:gravity="top"
-        android:orientation="vertical"
-        android:weightSum="1">
+        tools:context="com.example.android.popularmovies.DetailActivityFragment"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/detail_title"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="false"
+            android:background="#0ead7e"
+            android:gravity="center_vertical"
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="35dp" />
 
         <LinearLayout
-            android:id="@+id/linlay2"
+            android:id="@+id/linlay1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_below="@+id/detail_title"
             android:layout_centerInParent="true"
             android:gravity="top"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:weightSum="1">
 
-            <ImageView
-                android:id="@+id/detail_imageView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:contentDescription="image"
-                android:paddingLeft="10dp"
-                android:paddingTop="5dp" />
-
             <LinearLayout
-                android:id="@+id/linlay3"
+                android:id="@+id/linlay2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_below="@+id/detail_title"
+                android:layout_centerInParent="true"
+                android:gravity="top"
+                android:orientation="horizontal"
+                android:weightSum="1">
 
-                <TextView
-                    android:id="@+id/detail_user_rating"
-                    android:layout_width="fill_parent"
+                <ImageView
+                    android:id="@+id/detail_imageView"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="15dp"
-                    android:paddingTop="15dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
+                    android:layout_gravity="top"
+                    android:contentDescription="image"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="5dp" />
 
-                <TextView
-                    android:id="@+id/detail_release_date"
-                    android:layout_width="fill_parent"
+                <LinearLayout
+                    android:id="@+id/linlay3"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="15dp"
-                    android:paddingTop="15dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/detail_user_rating"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="15dp"
+                        android:paddingTop="15dp"
+                        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                    <TextView
+                        android:id="@+id/detail_release_date"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="15dp"
+                        android:paddingTop="15dp"
+                        android:textAppearance="?android:attr/textAppearanceLarge" />
+                </LinearLayout>
+
+
             </LinearLayout>
 
-
+            <TextView
+                android:id="@+id/detail_plot_synopsis"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:paddingTop="15dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textSize="14sp" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/detail_plot_synopsis"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="15dp"
-            android:paddingTop="15dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textSize="14sp"
-            android:paddingRight="15dp" />
     </LinearLayout>
-
-</RelativeLayout>
+</ScrollView>

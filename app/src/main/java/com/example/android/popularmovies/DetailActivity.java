@@ -24,19 +24,5 @@ public class DetailActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        if (savedInstanceState == null || getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Log.v(LOG_TAG, "FLOW DetailActivity.onCreate savedInstanceState == null");
-            DetailActivityFragment details = new DetailActivityFragment();
-            details.setArguments(getIntent().getExtras());
-            getFragmentManager().beginTransaction().add(R.id.details_fragment, details).commit();
-        }
-
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.v(LOG_TAG, "FLOW DetailActivity.onDestroy");
     }
 }
