@@ -5,13 +5,15 @@ import android.os.Parcelable;
 
 public class Movie implements Parcelable {
 
+    private int id;
     private String originalTitle;
     private String posterPath;
     private String overview;
     private String voteAverage;
     private String releaseDate;
 
-    public Movie(String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate) {
+    public Movie(int id, String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate) {
+        this.id = id;
         this.originalTitle = originalTitle;
         this.posterPath = posterPath;
         this.overview = overview;
@@ -20,6 +22,7 @@ public class Movie implements Parcelable {
     }
 
     protected Movie(Parcel in) {
+        id = in.readInt();
         originalTitle = in.readString();
         posterPath = in.readString();
         overview = in.readString();
@@ -38,6 +41,14 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getOriginalTitle() {
         return originalTitle;
@@ -82,7 +93,8 @@ public class Movie implements Parcelable {
     @Override
     public String toString() {
         return "Movie{" +
-                "originalTitle='" + originalTitle + '\'' +
+                "id='" + id + '\'' +
+                ", originalTitle='" + originalTitle + '\'' +
                 ", posterPath='" + posterPath + '\'' +
                 ", overview='" + overview + '\'' +
                 ", voteAverage='" + voteAverage + '\'' +
@@ -97,6 +109,7 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
         dest.writeString(originalTitle);
         dest.writeString(posterPath);
         dest.writeString(overview);

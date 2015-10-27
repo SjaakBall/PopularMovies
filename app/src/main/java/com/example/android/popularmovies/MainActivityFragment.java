@@ -235,6 +235,7 @@ public class MainActivityFragment extends Fragment {
 
                 URL url;
                 url = new URL(builtUri.toString());
+                Log.v(LOG_TAG, "builtUri.toString(): " + builtUri.toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -296,7 +297,7 @@ public class MainActivityFragment extends Fragment {
                 for (int i = 0; i < results.length; i++) {
                     String movieStr = results[i];
                     List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
-                    Movie movie = new Movie(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
+                    Movie movie = new Movie(Integer.parseInt(list.get(0)), list.get(1), list.get(2), list.get(3), list.get(4), list.get(5));
                     movieList.add(movie);
                 }
             }
@@ -313,6 +314,7 @@ public class MainActivityFragment extends Fragment {
         private String[] getMoviesDataFromJson(String moviesJsonStr) throws JSONException {
 
             final String RESULTS_LIST = "results";
+            final String ID = "id";
             final String ORIGINAL_TITLE = "original_title";
             final String POSTER_PATH = "poster_path";
             final String OVERVIEW = "overview";
@@ -327,12 +329,13 @@ public class MainActivityFragment extends Fragment {
             for (int i = 0; i < moviesArray.length(); i++) {
 
                 JSONObject movieJSONObject = moviesArray.getJSONObject(i);
+                String id = movieJSONObject.getString(ID) != null && movieJSONObject.getString(ID).length() > 0 ? movieJSONObject.getString(ID) : "no id value";
                 String original_title = movieJSONObject.getString(ORIGINAL_TITLE) != null && movieJSONObject.getString(ORIGINAL_TITLE).length() > 0 ? movieJSONObject.getString(ORIGINAL_TITLE) : "no original poster value";
                 String poster_path = movieJSONObject.getString(POSTER_PATH) != null && movieJSONObject.getString(POSTER_PATH).length() > 0 ? movieJSONObject.getString(POSTER_PATH) : "no poster path value";
                 String overview = movieJSONObject.getString(OVERVIEW) != null && movieJSONObject.getString(OVERVIEW).length() > 0 ? movieJSONObject.getString(OVERVIEW) : "no overview value";
                 String vote_average = movieJSONObject.getString(VOTE_AVERAGE) != null && movieJSONObject.getString(VOTE_AVERAGE).length() > 0 ? movieJSONObject.getString(VOTE_AVERAGE) : "no vote average value";
                 String release_date = movieJSONObject.getString(RELEASE_DATE) != null && movieJSONObject.getString(RELEASE_DATE).length() > 0 ? movieJSONObject.getString(RELEASE_DATE) : "no release date value";
-                resultStrs[i] = original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
+                resultStrs[i] = id + "-!--" + original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
             }
 
             return resultStrs;

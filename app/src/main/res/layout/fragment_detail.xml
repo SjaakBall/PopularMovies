@@ -8,8 +8,8 @@
         android:id="@+id/details_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.android.popularmovies.DetailActivityFragment"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:context="com.example.android.popularmovies.DetailActivityFragment">
 
         <TextView
             android:id="@+id/detail_title"
@@ -74,6 +74,17 @@
                         android:paddingLeft="15dp"
                         android:paddingTop="15dp"
                         android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                    <Button
+                        android:id="@+id/button_favorite"
+                        style="?android:attr/buttonStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="15dp"
+                        android:paddingTop="15dp"
+                        android:text="Mark as Favorite" />
+
+
                 </LinearLayout>
 
 
