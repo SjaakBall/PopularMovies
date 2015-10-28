@@ -2,12 +2,14 @@ package com.example.android.popularmovies;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -42,6 +45,9 @@ public class MainActivityFragment extends Fragment {
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private final static String MOVIES_STATE = "movies_state";
     private final static String MOVIE_STATE = "movie_state";
+
+
+    private int mProgressStatus = 0;
 
     private ImageAdapter imageAdapter;
     private GridView gridView;
@@ -199,12 +205,31 @@ public class MainActivityFragment extends Fragment {
         fetchMoviesTask.execute(sorting);
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
+    public class FetchMoviesTask extends AsyncTask<String, Integer, String[]> {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
         private final String PERSONAL_API_KEY = getResources().getString(R.string.movie_api_key);
         private List<Movie> movieList;
+
+        ProgressDialog dailog;
+
+        protected void onPreExecute()
+        {
+            //example of setting up something
+            dailog=new ProgressDialog(getContext());
+            dailog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            dailog.setMax(0);
+            dailog.show();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            mProgressStatus = values[0];
+            dailog.incrementProgressBy(mProgressStatus);
+            Log.v(LOG_TAG, "onProgressUpdate.mProgressStatus: " + mProgressStatus);
+        }
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -237,6 +262,7 @@ public class MainActivityFragment extends Fragment {
                 url = new URL(builtUri.toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept-Encoding", "identity");
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
@@ -246,7 +272,6 @@ public class MainActivityFragment extends Fragment {
                     return null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
-
                 String line;
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line + "\n");
@@ -324,6 +349,7 @@ public class MainActivityFragment extends Fragment {
 
             String[] resultStrs = new String[moviesArray.length()];
 
+            mProgressStatus = 0;
             for (int i = 0; i < moviesArray.length(); i++) {
 
                 JSONObject movieJSONObject = moviesArray.getJSONObject(i);
@@ -333,7 +359,12 @@ public class MainActivityFragment extends Fragment {
                 String vote_average = movieJSONObject.getString(VOTE_AVERAGE) != null && movieJSONObject.getString(VOTE_AVERAGE).length() > 0 ? movieJSONObject.getString(VOTE_AVERAGE) : "no vote average value";
                 String release_date = movieJSONObject.getString(RELEASE_DATE) != null && movieJSONObject.getString(RELEASE_DATE).length() > 0 ? movieJSONObject.getString(RELEASE_DATE) : "no release date value";
                 resultStrs[i] = original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
+
+                Log.v(LOG_TAG, "publishProgress.mProgressStatus: " + (int) (((double) i / (double) moviesArray.length()) * 100));
+                publishProgress(new Integer[]{(int) (((double) i / (double) moviesArray.length()) * 100)});
+
             }
+            dailog.dismiss();
 
             return resultStrs;
         }
