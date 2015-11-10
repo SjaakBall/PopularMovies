@@ -8,8 +8,10 @@
     <string name="pref_sort_key" translatable="false">sort</string>
     <string name="pref_sort_label_highest_rated">Highest rated</string>
     <string name="pref_sort_label_most_popular">Most popular</string>
+    <string name="pref_sort_label_favorites">Favorites</string>
     <string name="pref_sort_highest_rated" translatable="false">vote_average.desc</string>
     <string name="pref_sort_most_popular" translatable="false">popularity.desc</string>
+    <string name="pref_sort_favorites" translatable="false">favorites</string>
     <string name="pref_sort_default">popularity.desc</string>
     <string name="title_activity_detail">DetailActivity</string>
     <string name="movie_state">movie_state</string>

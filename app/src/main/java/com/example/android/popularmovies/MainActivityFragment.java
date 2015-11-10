@@ -2,9 +2,13 @@ package com.example.android.popularmovies;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -20,6 +24,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
+
+import com.example.android.popularmovies.data.MoviesContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,13 +43,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivityFragment extends Fragment {
+import static android.provider.BaseColumns._ID;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_ID;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_ORIGINAL_TITLE;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_OVERVIEW;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_POSTER_PATH;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_RELEASE_DATE;
+import static com.example.android.popularmovies.data.MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE;
+
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private final static String MOVIES_STATE = "movies_state";
     private final static String MOVIE_STATE = "movie_state";
 
     private ImageAdapter imageAdapter;
+    private MoviesAdapter moviesAdapter;
     private GridView gridView;
     private List<Movie> movieList = null;
     boolean mDualPane;
@@ -83,17 +98,52 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         gridView = (GridView) rootView.findViewById(R.id.main_list_gridview);
-        imageAdapter = new ImageAdapter(this.getActivity());
+
+        populateGridView();
+
         if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES_STATE)) {
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
         }
-        imageAdapter.setMovies(movieList);
-        imageAdapter.notifyDataSetChanged();
-        gridView.setAdapter(imageAdapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Movie movie = (Movie) imageAdapter.getItem(position);
+
+                Movie movie = null;
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+                if (sorting.equals("favorites")) {
+                    Cursor movieCursor = getActivity().getContentResolver().query(
+                            MoviesContract.MovieEntry.CONTENT_URI,
+                            new String[]{MoviesContract.MovieEntry._ID},
+                            MoviesContract.MovieEntry._ID + " = ?",
+                            new String[]{String.valueOf(position + 1)},
+                            null);
+                    //int id, String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate
+                    if (movieCursor != null && movieCursor.moveToFirst()) {
+                        movieCursor.moveToNext();
+                        int movieIdIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID);
+                        int originalTitleIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
+                        int posterPathIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH);
+                        int overviewIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_OVERVIEW);
+                        int voteAverageIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE);
+                        int releaseDateIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE);
+                        int movieId = movieCursor.getInt(movieIdIndex);
+                        Log.v(LOG_TAG, "FLOW movieId" + movieId);
+                        movie = new Movie(
+                                movieCursor.getInt(movieIdIndex),
+                                movieCursor.getString(originalTitleIndex),
+                                movieCursor.getString(posterPathIndex),
+                                movieCursor.getString(overviewIndex),
+                                movieCursor.getString(voteAverageIndex),
+                                movieCursor.getString(releaseDateIndex)
+                        );
+                        Log.v(LOG_TAG, "FLOW setOnItemClickListener movie.toString()" + movie.toString());
+                    }
+
+
+                } else {
+                    movie = (Movie) imageAdapter.getItem(position);
+                }
                 //which frame is shown
                 if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE &&
                         getFragmentManager().findFragmentById(R.id.tb_details_fragment) != null) {
@@ -113,6 +163,39 @@ public class MainActivityFragment extends Fragment {
         });
 
         return rootView;
+    }
+
+    private void populateGridView() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+        if (sorting.equals("favorites")) {
+            Log.v(LOG_TAG, "FLOW populateGridView sorting favorites ");
+            Cursor cursor =
+                    getActivity().getContentResolver().query(MoviesContract.MovieEntry.CONTENT_URI,
+                            new String[]{_ID, COLUMN_POSTER_PATH},
+                            null,
+                            null,
+                            null);
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    // Gets the value from the column.
+                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(0));
+                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(1));
+                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(0));
+                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(1));
+                }
+            }
+
+            moviesAdapter = new MoviesAdapter(getActivity(), cursor, 0, 0);
+            gridView.setAdapter(moviesAdapter);
+            moviesAdapter.notifyDataSetChanged();
+        } else {
+            Log.v(LOG_TAG, "FLOW populateGridView sorting NOT favorites  movieList.size():" + movieList.size());
+            imageAdapter = new ImageAdapter(this.getActivity());
+            imageAdapter.setMovies(movieList);
+            imageAdapter.notifyDataSetChanged();
+            gridView.setAdapter(imageAdapter);
+        }
     }
 
     @Override
@@ -138,6 +221,16 @@ public class MainActivityFragment extends Fragment {
         Log.v(LOG_TAG, "FLOW MainActivityFragment.onPause");
     }
 
+    // These are the Contacts rows that we will retrieve.
+    static final String[] MOVIES_SUMMARY_PROJECTION = new String[]{
+            COLUMN_ID,
+            COLUMN_ORIGINAL_TITLE,
+            COLUMN_POSTER_PATH,
+            COLUMN_OVERVIEW,
+            COLUMN_VOTE_AVERAGE,
+            COLUMN_RELEASE_DATE,
+    };
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -149,6 +242,47 @@ public class MainActivityFragment extends Fragment {
         if (savedInstanceState != null) {
             mCurCheckPosition = savedInstanceState.getInt("curChoice", 0);
         }
+
+////        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+////        String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+////        if (sorting.equals("favorites")) {
+//
+//        Cursor cursor =
+//                getActivity().getContentResolver().query(MoviesContract.MovieEntry.CONTENT_URI,
+//                        new String[]{_ID, COLUMN_POSTER_PATH},
+//                        null,
+//                        null,
+//                        null);
+//
+//        if (cursor != null) {
+//    /*
+//     * Moves to the next row in the cursor. Before the first movement in the cursor, the
+//     * "row pointer" is -1, and if you try to retrieve data at that position you will get an
+//     * exception.
+//     */
+//            while (cursor.moveToNext()) {
+//
+//                // Gets the value from the column.
+//                Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(0));
+//                Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(1));
+//                Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(0));
+//                Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(1));
+//            }
+//        }
+//        // Create an empty adapter we will use to display the loaded data.
+////        moviesAdapter = new SimpleCursorAdapter(
+////                getActivity(),
+////                android.R.layout.simple_list_item_2,
+////                cursor,
+////                new String[]{COLUMN_POSTER_PATH},
+////                new int[]{android.R.id.text1},
+////                0);
+//
+//        moviesAdapter = new MoviesAdapter(getActivity(), cursor, 0, 0);
+//        }
+        // Prepare the loader.  Either re-connect with an existing one,
+        // or start a new one.
+        getLoaderManager().initLoader(0, null, this);
 
     }
 
@@ -196,7 +330,34 @@ public class MainActivityFragment extends Fragment {
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+//        if (sorting.equals("favorites")) {
+//            Cursor cursor =
+//                    getActivity().getContentResolver().query(MoviesContract.MovieEntry.CONTENT_URI,
+//                            null,
+//                            null,
+//                            null,
+//                            null);
+//            String one = cursor.getString(1);
+//        } else {
         fetchMoviesTask.execute(sorting);
+//        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getActivity(), MoviesContract.MovieEntry.CONTENT_URI, null, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (moviesAdapter != null) {
+            moviesAdapter.swapCursor(data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        moviesAdapter.swapCursor(null);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
@@ -204,7 +365,6 @@ public class MainActivityFragment extends Fragment {
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
         private final String PERSONAL_API_KEY = getResources().getString(R.string.movie_api_key);
-        private List<Movie> movieList;
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -301,10 +461,11 @@ public class MainActivityFragment extends Fragment {
                     movieList.add(movie);
                 }
             }
-            imageAdapter = new ImageAdapter(getActivity());
-            imageAdapter.setMovies(movieList);
-            gridView.setAdapter(imageAdapter);
-            imageAdapter.notifyDataSetChanged();
+            populateGridView();
+//            imageAdapter = new ImageAdapter(getActivity());
+//            imageAdapter.setMovies(movieList);
+//            gridView.setAdapter(imageAdapter);
+//            imageAdapter.notifyDataSetChanged();
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
                     && movieList != null && movieList.size() > 0) {
                 showDetails(mCurCheckPosition);
