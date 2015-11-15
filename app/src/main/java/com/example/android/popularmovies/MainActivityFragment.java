@@ -75,7 +75,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
         } else {
             movieList = new ArrayList<>();
-            updateMovies();
+//            updateMovies();
         }
         setHasOptionsMenu(true);
     }
@@ -114,21 +114,18 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 if (sorting.equals("favorites")) {
                     Cursor movieCursor = getActivity().getContentResolver().query(
                             MoviesContract.MovieEntry.CONTENT_URI,
-                            new String[]{MoviesContract.MovieEntry._ID},
+                            MOVIES_SUMMARY_PROJECTION,
                             MoviesContract.MovieEntry._ID + " = ?",
                             new String[]{String.valueOf(position + 1)},
                             null);
                     //int id, String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate
                     if (movieCursor != null && movieCursor.moveToFirst()) {
-                        movieCursor.moveToNext();
                         int movieIdIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID);
                         int originalTitleIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
                         int posterPathIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH);
                         int overviewIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_OVERVIEW);
                         int voteAverageIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE);
                         int releaseDateIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE);
-                        int movieId = movieCursor.getInt(movieIdIndex);
-                        Log.v(LOG_TAG, "FLOW movieId" + movieId);
                         movie = new Movie(
                                 movieCursor.getInt(movieIdIndex),
                                 movieCursor.getString(originalTitleIndex),
@@ -145,8 +142,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                     movie = (Movie) imageAdapter.getItem(position);
                 }
                 //which frame is shown
-                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE &&
-                        getFragmentManager().findFragmentById(R.id.tb_details_fragment) != null) {
+                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     Log.v(LOG_TAG, "FLOW MainActivityFragment.onCreateView onItemClick landscape");
                     DetailActivityFragment details = DetailActivityFragment.newInstance(position, movie);
                     FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -175,7 +171,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                             new String[]{_ID, COLUMN_POSTER_PATH},
                             null,
                             null,
-                            null);
+            null);
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     // Gets the value from the column.
@@ -327,20 +323,13 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     private void updateMovies() {
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.updateMovies");
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-//        if (sorting.equals("favorites")) {
-//            Cursor cursor =
-//                    getActivity().getContentResolver().query(MoviesContract.MovieEntry.CONTENT_URI,
-//                            null,
-//                            null,
-//                            null,
-//                            null);
-//            String one = cursor.getString(1);
-//        } else {
-        fetchMoviesTask.execute(sorting);
-//        }
+        if (!sorting.equals("favorites")) {
+            fetchMoviesTask.execute(sorting);
+        }
     }
 
     @Override
@@ -357,7 +346,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        moviesAdapter.swapCursor(null);
+        if (moviesAdapter != null) {
+            moviesAdapter.swapCursor(null);
+        }
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {

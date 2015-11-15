@@ -3,6 +3,8 @@ package com.example.android.popularmovies;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.List;
+
 public class Movie implements Parcelable {
 
     private int id;
@@ -11,6 +13,8 @@ public class Movie implements Parcelable {
     private String overview;
     private String voteAverage;
     private String releaseDate;
+    private List<Video> videos;
+    private List<Review> reviews;
 
     public Movie(int id, String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate) {
         this.id = id;
@@ -93,12 +97,14 @@ public class Movie implements Parcelable {
     @Override
     public String toString() {
         return "Movie{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", originalTitle='" + originalTitle + '\'' +
                 ", posterPath='" + posterPath + '\'' +
                 ", overview='" + overview + '\'' +
                 ", voteAverage='" + voteAverage + '\'' +
                 ", releaseDate='" + releaseDate + '\'' +
+                ", videos=" + videos +
+                ", reviews=" + reviews +
                 '}';
     }
 
@@ -115,5 +121,21 @@ public class Movie implements Parcelable {
         dest.writeString(overview);
         dest.writeString(voteAverage);
         dest.writeString(releaseDate);
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
+    }
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
     }
 }
