@@ -453,10 +453,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 }
             }
             populateGridView();
-//            imageAdapter = new ImageAdapter(getActivity());
-//            imageAdapter.setMovies(movieList);
-//            gridView.setAdapter(imageAdapter);
-//            imageAdapter.notifyDataSetChanged();
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
                     && movieList != null && movieList.size() > 0) {
                 showDetails(mCurCheckPosition);

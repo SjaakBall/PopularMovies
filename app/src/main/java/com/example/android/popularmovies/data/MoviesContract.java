@@ -44,6 +44,7 @@ public class MoviesContract {
     public static final class ReviewEntry {
         public static final String TABLE_REVIEW = "review";
         public static final String _ID = "_id";
+        public static final String COLUMN_ID = "id";
         public static final String COLUMN_AUTHOR = "author";
         public static final String COLUMN_CONTENT = "content";
         public static final String COLUMN_LOC_KEY = "review_id";

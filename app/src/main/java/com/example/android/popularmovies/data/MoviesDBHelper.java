@@ -34,10 +34,12 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
 
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " +
-                MoviesContract.ReviewEntry.TABLE_REVIEW + "(" +
-                MoviesContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                MoviesContract.ReviewEntry.TABLE_REVIEW + " (" +
+                MoviesContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MoviesContract.ReviewEntry.COLUMN_ID + " INTEGER NOT NULL, " +
                 MoviesContract.ReviewEntry.COLUMN_AUTHOR + " TEXT NOT NULL,  " +
-                MoviesContract.ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL " +
+                MoviesContract.ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
+                MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " INTEGER NOT NULL, " +
                 " FOREIGN KEY (" + MoviesContract.ReviewEntry.COLUMN_LOC_KEY + ") REFERENCES " +
                 MoviesContract.MovieEntry.TABLE_MOVIES + "(" + MoviesContract.MovieEntry._ID + ")," +
                 " UNIQUE (" + MoviesContract.ReviewEntry.COLUMN_LOC_KEY + ") ON CONFLICT REPLACE" +
@@ -46,17 +48,18 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE);
 
         final String SQL_CREATE_VIDEO_TABLE = "CREATE TABLE " +
-                MoviesContract.VideoEntry.TABLE_VIDEO + "(" +
-                MoviesContract.VideoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                MoviesContract.VideoEntry.TABLE_VIDEO + " (" +
+                MoviesContract.VideoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 MoviesContract.VideoEntry.COLUMN_KEY + " TEXT NOT NULL UNIQUE ,  " +
                 MoviesContract.VideoEntry.COLUMN_NAME + " TEXT NOT NULL ,  " +
                 MoviesContract.VideoEntry.COLUMN_TYPE + " TEXT NOT NULL,   " +
+                MoviesContract.VideoEntry.COLUMN_LOC_KEY + " INTEGER NOT NULL, " +
                 " FOREIGN KEY (" + MoviesContract.VideoEntry.COLUMN_LOC_KEY + ") REFERENCES " +
                 MoviesContract.MovieEntry.TABLE_MOVIES + "(" + MoviesContract.MovieEntry._ID + ")," +
                 " UNIQUE (" + MoviesContract.VideoEntry.COLUMN_LOC_KEY + ") ON CONFLICT REPLACE" +
                 ")";
 
-        sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_VIDEO_TABLE);
     }
 
     @Override

@@ -4,6 +4,7 @@ package com.example.android.popularmovies;
  * Created by JanHerman on 13/11/2015.
  */
 public class Video {
+    private String movieId;
     private String id;
     private String key;
     private String name;
@@ -11,13 +12,22 @@ public class Video {
     private String size;
     private String type;
 
-    public Video(String id, String key, String name, String site, String size, String type) {
+    public Video(String movieId, String id, String key, String name, String site, String size, String type) {
+        this.movieId = movieId;
         this.id = id;
         this.key = key;
         this.name = name;
         this.site = site;
         this.size = size;
         this.type = type;
+    }
+
+    public String getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(String movieId) {
+        this.movieId = movieId;
     }
 
     public String getId() {

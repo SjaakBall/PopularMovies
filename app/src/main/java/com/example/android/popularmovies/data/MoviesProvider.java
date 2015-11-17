@@ -19,12 +19,14 @@ public class MoviesProvider extends ContentProvider {
 
     // Codes for the UriMatcher //////
     private static final int MOVIE = 100;
+    private static final int VIDEO = 101;
+    private static final int REVIEW = 102;
     private static final int MOVIE_WITH_ID = 200;
     private static final int REVIEW_WITH_ID = 300;
     private static final int VIDEO_WITH_ID = 400;
     ////////
 
-    private static UriMatcher buildUriMatcher(){
+    private static UriMatcher buildUriMatcher() {
         // Build a UriMatcher by adding a specific code to return based on a match
         // It's common to use NO_MATCH as the code for this case.
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -32,7 +34,11 @@ public class MoviesProvider extends ContentProvider {
 
         // add a code for each type of URI you want
         matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES, MOVIE);
+        matcher.addURI(authority, MoviesContract.VideoEntry.TABLE_VIDEO, VIDEO);
+        matcher.addURI(authority, MoviesContract.ReviewEntry.TABLE_REVIEW, REVIEW);
         matcher.addURI(authority, MoviesContract.MovieEntry.TABLE_MOVIES + "/#", MOVIE_WITH_ID);
+        matcher.addURI(authority, MoviesContract.VideoEntry.TABLE_VIDEO + "/#", VIDEO_WITH_ID);
+        matcher.addURI(authority, MoviesContract.ReviewEntry.TABLE_REVIEW + "/#", REVIEW_WITH_ID);
 
         return matcher;
     }
@@ -48,9 +54,9 @@ public class MoviesProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor retCursor;
-        switch(sUriMatcher.match(uri)){
+        switch (sUriMatcher.match(uri)) {
             // All Movies selected
-            case MOVIE:{
+            case MOVIE: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MoviesContract.MovieEntry.TABLE_MOVIES,
                         projection,
@@ -62,18 +68,62 @@ public class MoviesProvider extends ContentProvider {
                 return retCursor;
             }
             // Individual movie based on Id selected
-            case MOVIE_WITH_ID:{
+            case MOVIE_WITH_ID: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MoviesContract.MovieEntry.TABLE_MOVIES,
                         projection,
                         MoviesContract.MovieEntry.COLUMN_ID + " = ?",
-                        new String[] {String.valueOf(ContentUris.parseId(uri))},
+                        new String[]{String.valueOf(ContentUris.parseId(uri))},
                         null,
                         null,
                         sortOrder);
                 return retCursor;
             }
-            default:{
+            case VIDEO: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MoviesContract.VideoEntry.TABLE_VIDEO,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            case VIDEO_WITH_ID: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MoviesContract.VideoEntry.TABLE_VIDEO,
+                        projection,
+                        MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                        new String[]{String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            case REVIEW: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewEntry.TABLE_REVIEW,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            case REVIEW_WITH_ID: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        MoviesContract.ReviewEntry.TABLE_REVIEW,
+                        projection,
+                        MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " = ?",
+                        new String[]{String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        sortOrder);
+                return retCursor;
+            }
+            default: {
                 // By default, we assume a bad URI
                 throw new UnsupportedOperationException("Unknown uri for query: " + uri);
             }
@@ -85,14 +135,20 @@ public class MoviesProvider extends ContentProvider {
     public String getType(Uri uri) {
         final int match = sUriMatcher.match(uri);
 
-        switch (match){
-            case MOVIE:{
+        switch (match) {
+            case MOVIE: {
                 return MoviesContract.MovieEntry.CONTENT_DIR_TYPE;
             }
-            case MOVIE_WITH_ID:{
+            case MOVIE_WITH_ID: {
                 return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
             }
-            default:{
+            case VIDEO_WITH_ID: {
+                return MoviesContract.VideoEntry.CONTENT_ITEM_TYPE;
+            }
+            case REVIEW_WITH_ID: {
+                return MoviesContract.ReviewEntry.CONTENT_ITEM_TYPE;
+            }
+            default: {
                 throw new UnsupportedOperationException("Unknown uri for getType: " + uri);
             }
         }
@@ -115,7 +171,7 @@ public class MoviesProvider extends ContentProvider {
                 break;
             }
 
-            case REVIEW_WITH_ID: {
+            case REVIEW: {
                 long _id = db.insert(MoviesContract.ReviewEntry.TABLE_REVIEW, null, values);
                 if (_id > 0) {
                     returnUri = MoviesContract.ReviewEntry.buildReviewUri(_id);
@@ -125,7 +181,7 @@ public class MoviesProvider extends ContentProvider {
                 break;
             }
 
-            case VIDEO_WITH_ID: {
+            case VIDEO: {
                 long _id = db.insert(MoviesContract.VideoEntry.TABLE_VIDEO, null, values);
                 if (_id > 0) {
                     returnUri = MoviesContract.VideoEntry.buildReviewUri(_id);
@@ -149,7 +205,7 @@ public class MoviesProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         int numDeleted;
-        switch(match){
+        switch (match) {
             case MOVIE:
                 numDeleted = db.delete(
                         MoviesContract.MovieEntry.TABLE_MOVIES, selection, selectionArgs);
@@ -178,12 +234,12 @@ public class MoviesProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int numUpdated = 0;
 
-        if (contentValues == null){
+        if (contentValues == null) {
             throw new IllegalArgumentException("Cannot have null content values");
         }
 
-        switch(sUriMatcher.match(uri)){
-            case MOVIE:{
+        switch (sUriMatcher.match(uri)) {
+            case MOVIE: {
                 numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
                         contentValues,
                         selection,
@@ -194,15 +250,15 @@ public class MoviesProvider extends ContentProvider {
                 numUpdated = db.update(MoviesContract.MovieEntry.TABLE_MOVIES,
                         contentValues,
                         MoviesContract.MovieEntry.COLUMN_ID + " = ?",
-                        new String[] {String.valueOf(ContentUris.parseId(uri))});
+                        new String[]{String.valueOf(ContentUris.parseId(uri))});
                 break;
             }
-            default:{
+            default: {
                 throw new UnsupportedOperationException("Unknown uri for update: " + uri);
             }
         }
 
-        if (numUpdated > 0){
+        if (numUpdated > 0) {
             getContext().getContentResolver().notifyChange(uri, null);
         }
 

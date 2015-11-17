@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MoviesContract;
@@ -44,6 +45,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private final static String MOVIE_STATE = "movie_state";
     private Movie movie;
     private static int movieId;
+    private ListView reviewListView;
+    private ListView videoListView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -116,7 +119,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 //            movie = intent.getParcelableExtra(MOVIE_STATE);
 //            assert movie != null;
 //            startTaskForVideosAndReviews();
-            Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView movie.toString(): "+ movie.toString());
+            Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView movie.toString(): " + movie.toString());
             populateView(rootView, movie);
         }
 
@@ -206,6 +209,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         Picasso.with(getActivity())
                 .load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath())
                 .into(imageView);
+
+        reviewListView = (ListView) rootView.findViewById(R.id.reviewlistview);
+        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
+
+        if (movie.getReviews() != null && movie.getReviews().size() > 0) {
+            populateReviewListView(movie.getReviews());
+        }
+        if (movie.getReviews() != null && movie.getReviews().size() > 0) {
+            populateVideoListView(movie.getVideos());
+        }
 //        Log.v(LOG_TAG, "FLOW movie.getVideos().size()" + movie.getVideos().size());
     }
 
@@ -256,18 +269,17 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                     if (movieStr.startsWith("|video|")) {
                         movieStr = movieStr.substring(7);
                         List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
-                        Video video = new Video(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4), list.get(5));
-                        Log.v(LOG_TAG, "video; " + video);
-                        //TODO insert int DB
-//                        insertIntoDatabase(video);
+                        Video video = new Video(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4), list.get(5), list.get(6));
+//                        Log.v(LOG_TAG, "video; " + video);
+                        addVideoToDatabase(video);
                         videoList.add(video);
                     }
                     if (movieStr.startsWith("|review|")) {
                         movieStr = movieStr.substring(8);
                         List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
-                        Review review = new Review(list.get(0), list.get(1), list.get(2), list.get(3));
-                        Log.v(LOG_TAG, "review: " + review);
-                        //TODO insert int DB
+                        Review review = new Review(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
+//                        Log.v(LOG_TAG, "review: " + review);
+                        addReviewToDatabase(review);
                         reviewList.add(review);
                     }
                 }
@@ -279,6 +291,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             if (reviewList != null && reviewList.size() > 0) {
                 movie.setReviews(reviewList);
             }
+
+            populateReviewListView(reviewList);
+            populateVideoListView(videoList);
         }
 
         private URL buildUriVideos(String movieId) {
@@ -474,6 +489,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             final String TYPE = "type";
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(RESULTS_LIST);
+            String movieId = moviesJson.getString(ID) != null && moviesJson.getString(ID).length() > 0 ? moviesJson.getString(ID) : "no id value";
 
             String[] resultStrs = new String[moviesArray.length()];
 
@@ -485,8 +501,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 String site = movieJSONObject.getString(SITE) != null && movieJSONObject.getString(SITE).length() > 0 ? movieJSONObject.getString(SITE) : "no site value";
                 String size = movieJSONObject.getString(SIZE) != null && movieJSONObject.getString(SIZE).length() > 0 ? movieJSONObject.getString(SIZE) : "no size value";
                 String type = movieJSONObject.getString(TYPE) != null && movieJSONObject.getString(TYPE).length() > 0 ? movieJSONObject.getString(TYPE) : "no type value";
-                resultStrs[i] = "|video|" + id + "-!--" + key + "-!--" + name + "-!--" + site + "-!--" + size + "-!--" + type;
-                Log.v(LOG_TAG, "video resultStrs[i]" + resultStrs[i]);
+                resultStrs[i] = "|video|" + movieId + "-!--" + id + "-!--" + key + "-!--" + name + "-!--" + site + "-!--" + size + "-!--" + type;
+//                Log.v(LOG_TAG, "video resultStrs[i]" + resultStrs[i]);
             }
             return resultStrs;
         }
@@ -519,6 +535,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             final String URL = "url";
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(RESULTS_LIST);
+            String movieId = moviesJson.getString(ID) != null && moviesJson.getString(ID).length() > 0 ? moviesJson.getString(ID) : "no id value";
 
             String[] resultStrs = new String[moviesArray.length()];
 
@@ -528,12 +545,116 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 String author = movieJSONObject.getString(AUTHOR) != null && movieJSONObject.getString(AUTHOR).length() > 0 ? movieJSONObject.getString(AUTHOR) : "no author value";
                 String content = movieJSONObject.getString(CONTENT) != null && movieJSONObject.getString(CONTENT).length() > 0 ? movieJSONObject.getString(CONTENT) : "no content value";
                 String url = movieJSONObject.getString(URL) != null && movieJSONObject.getString(URL).length() > 0 ? movieJSONObject.getString(URL) : "no url value";
-                resultStrs[i] = "|review|" + id + "-!--" + author + "-!--" + content + "-!--" + url;
-                Log.v(LOG_TAG, "review resultStrs[i]" + resultStrs[i]);
+                resultStrs[i] = "|review|" + movieId + "-!--" + id + "-!--" + author + "-!--" + content + "-!--" + url;
+//                Log.v(LOG_TAG, "review resultStrs[i]" + resultStrs[i]);
             }
             return resultStrs;
         }
 
 
+    }
+
+    private void populateVideoListView(List<Video> videoList) {
+        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, videoList);
+        videoListView.setAdapter(adapter);
+    }
+
+    private void populateReviewListView(List<Review> reviewList) {
+        final ReviewArrayAdapter adapter = new ReviewArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, reviewList);
+        reviewListView.setAdapter(adapter);
+    }
+
+    private void addReviewToDatabase(Review review) {
+        long reviewId;
+        // First, check if the movie with this id exists in the db
+        Cursor reviewCursor = getActivity().getContentResolver().query(
+                MoviesContract.ReviewEntry.CONTENT_URI,
+                new String[]{MoviesContract.ReviewEntry.COLUMN_LOC_KEY},
+                MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(review.getMovieId())},
+                null);
+
+        if (reviewCursor != null && reviewCursor.moveToFirst()) {
+            int reviewIdIndex = reviewCursor.getColumnIndex(MoviesContract.ReviewEntry._ID);
+            if (reviewIdIndex > 0) {
+                reviewId = reviewCursor.getLong(reviewIdIndex);
+            }
+            //video exist so do nothing
+        } else {
+            // Now that the content provider is set up, inserting rows of data is pretty simple.
+            // First create a ContentValues object to hold the data you want to insert.
+            ContentValues reviewValues = new ContentValues();
+
+            // Then add the data, along with the corresponding name of the data type,
+            // so the content provider knows what kind of value is being inserted.
+            reviewValues.put(MoviesContract.ReviewEntry.COLUMN_AUTHOR, review.getAuthor());
+            reviewValues.put(MoviesContract.ReviewEntry.COLUMN_CONTENT, review.getContent());
+            reviewValues.put(MoviesContract.ReviewEntry.COLUMN_ID, review.getId());
+            reviewValues.put(MoviesContract.ReviewEntry.COLUMN_LOC_KEY, review.getMovieId());
+
+            // Finally, insert movie data into the database.
+            Uri insertedUri = getActivity().getContentResolver().insert(
+                    MoviesContract.ReviewEntry.CONTENT_URI,
+                    reviewValues
+            );
+
+            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            reviewId = ContentUris.parseId(insertedUri);
+        }
+
+        assert reviewCursor != null;
+        reviewCursor.close();
+        // Wait, that worked?  Yes!
+//        return reviewId;
+    }
+
+    private void addVideoToDatabase(Video video) {
+        long videoId;
+        // First, check if the movie with this id exists in the db
+        Cursor videoCursor = getActivity().getContentResolver().query(
+                MoviesContract.VideoEntry.CONTENT_URI,
+                new String[]{MoviesContract.VideoEntry.COLUMN_LOC_KEY},
+                MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(video.getMovieId())},
+                null);
+//        Cursor videoCursor = getActivity().getContentResolver().query(
+//                MoviesContract.VideoEntry.CONTENT_URI,
+//                null,
+//                null,
+//                null,
+//                null);
+
+        if (videoCursor != null && videoCursor.moveToFirst()) {
+            int videoIdIndex = videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID);
+            if (videoIdIndex > 0 ) {
+                videoId = videoCursor.getLong(videoIdIndex);
+            }
+            //video exist so do nothing
+        } else {
+            // Now that the content provider is set up, inserting rows of data is pretty simple.
+            // First create a ContentValues object to hold the data you want to insert.
+            ContentValues videoValues = new ContentValues();
+
+            // Then add the data, along with the corresponding name of the data type,
+            // so the content provider knows what kind of value is being inserted.
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_KEY, video.getKey());
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_NAME, video.getName());
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_TYPE, video.getType());
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_LOC_KEY, video.getMovieId());
+
+            // Finally, insert movie data into the database.
+            Uri insertedUri = getActivity().getContentResolver().insert(
+                    MoviesContract.VideoEntry.CONTENT_URI,
+                    videoValues
+            );
+
+            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            videoId = ContentUris.parseId(insertedUri);
+        }
+
+        assert videoCursor != null;
+        videoCursor.close();
+        // Wait, that worked?  Yes!
+//        return videoId;
     }
 }

@@ -4,16 +4,26 @@ package com.example.android.popularmovies;
  * Created by JanHerman on 13/11/2015.
  */
 public class Review {
+    private String movieId;
     private String id;
     private String author;
     private String content;
     private String url;
 
-    public Review(String id, String author, String content, String url) {
+    public Review(String movieId, String id, String author, String content, String url) {
+        this.movieId = movieId;
         this.id = id;
         this.author = author;
         this.content = content;
         this.url = url;
+    }
+
+    public String getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(String movieId) {
+        this.movieId = movieId;
     }
 
     public String getId() {
