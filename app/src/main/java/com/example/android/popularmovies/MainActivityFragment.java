@@ -164,6 +164,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private void populateGridView() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+        boolean useCursor;
         if (sorting.equals("favorites")) {
             Log.v(LOG_TAG, "FLOW populateGridView sorting favorites ");
             Cursor cursor =
@@ -171,26 +172,25 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                             new String[]{_ID, COLUMN_POSTER_PATH},
                             null,
                             null,
-            null);
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    // Gets the value from the column.
-                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(0));
-                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getColumnName(1));
-                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(0));
-                    Log.v(LOG_TAG, "FLOW cursor.getInt " + cursor.getString(1));
-                }
-            }
-
+                            null);
             moviesAdapter = new MoviesAdapter(getActivity(), cursor, 0, 0);
             gridView.setAdapter(moviesAdapter);
             moviesAdapter.notifyDataSetChanged();
+            useCursor = true;
         } else {
             Log.v(LOG_TAG, "FLOW populateGridView sorting NOT favorites  movieList.size():" + movieList.size());
             imageAdapter = new ImageAdapter(this.getActivity());
             imageAdapter.setMovies(movieList);
             imageAdapter.notifyDataSetChanged();
             gridView.setAdapter(imageAdapter);
+//            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+//                    && movieList != null && movieList.size() > 0) {
+//                showDetails(mCurCheckPosition);
+//            }
+            useCursor = false;
+        }
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            showDetails(mCurCheckPosition, useCursor);
         }
     }
 
@@ -282,10 +282,17 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     }
 
-    private void showDetails(int index) {
+    private void showDetails(int index, boolean useCursor) {
         mCurCheckPosition = index;
         Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails & index : " + index);
 
+        Movie movie = null;
+
+        if (useCursor) {
+            movie = getMovieFromDatabase(index);
+        } else {
+            movie = imageAdapter.getMovies().get(index);
+        }
         if (mDualPane) {
 
             DetailActivityFragment details = (DetailActivityFragment) getFragmentManager().findFragmentById(R.id.details_fragment_container);
@@ -293,7 +300,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             if (details == null) {
                 Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails mDualPane: details == null || details.getShownIndex() != index");
                 // Make new fragment to show this selection.
-                details = DetailActivityFragment.newInstance(index, imageAdapter.getMovies().get(index));
+                details = DetailActivityFragment.newInstance(index, movie);
 
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 if (index == 0) {
@@ -308,10 +315,33 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             Intent intent = new Intent();
             intent.setClass(getActivity(), DetailActivity.class);
             intent.putExtra("index", index);
-            intent.putExtra(MOVIE_STATE, imageAdapter.getMovies().get(index));
+            intent.putExtra(MOVIE_STATE, movie);
             startActivity(intent);
         }
 
+    }
+
+    private Movie getMovieFromDatabase(int index) {
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.getMovieFromDatabase");
+        Movie movie = null;
+        Cursor movieCursor = getActivity().getContentResolver().query(
+                MoviesContract.MovieEntry.CONTENT_URI,
+                MOVIES_SUMMARY_PROJECTION,
+                MoviesContract.MovieEntry._ID + " = ?",
+                new String[]{String.valueOf(index + 1)},
+                null);
+
+        if (movieCursor != null && movieCursor.moveToFirst()) {
+            movie = new Movie(
+                    movieCursor.getInt(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID)),
+                    movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ORIGINAL_TITLE)),
+                    movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH)),
+                    movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_OVERVIEW)),
+                    movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE)),
+                    movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE)));
+                Log.v(LOG_TAG, "FLOW MainActivityFragment.getMovieFromDatabase columnName: " + movie.toString());
+        }
+        return movie;
     }
 
     @Override
@@ -330,6 +360,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         if (!sorting.equals("favorites")) {
             fetchMoviesTask.execute(sorting);
         }
+        populateGridView();
     }
 
     @Override
@@ -453,10 +484,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 }
             }
             populateGridView();
-            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
-                    && movieList != null && movieList.size() > 0) {
-                showDetails(mCurCheckPosition);
-            }
+//            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+//                    && movieList != null && movieList.size() > 0) {
+//                showDetails(mCurCheckPosition);
+//            }
         }
 
         private String[] getMoviesDataFromJson(String moviesJsonStr) throws JSONException {

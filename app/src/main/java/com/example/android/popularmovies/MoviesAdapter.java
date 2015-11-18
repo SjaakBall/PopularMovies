@@ -29,42 +29,24 @@ public class MoviesAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
-//        View customView=null;
-//        LayoutInflater inflater = LayoutInflater.from(context);
-//        customView = inflater.inflate(R.layout.grid_item_imageview, parent, false);
-//        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(1)).into((ImageView) customView);
-//        customView.setTag(parent);
-//        return customView;
+//        Log.v(LOG_TAG, "FLOW MoviesAdapter.newView image): " + "http://image.tmdb.org/t/p/w185/" + cursor.getString(3));
 
         ImageView imageView = new ImageView(mContext);
         imageView.setAdjustViewBounds(true);
         imageView.setPadding(0, 0, 0, 0);
 
-        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(1)).into((ImageView) imageView);
+        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(3)).into((ImageView) imageView);
         ViewHolder viewHolder = new ViewHolder(imageView);
         imageView.setTag(viewHolder);
 
         return imageView;
-
-
-//        int layoutId = -1;
-//        layoutId = R.layout.grid_item_imageview;
-//        View view = LayoutInflater.from(context).inflate(layoutId, parent, false);
-//        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(1)).into((ImageView) view);
-//        ViewHolder viewHolder = new ViewHolder(view);
-//        view.setTag(viewHolder);
-//
-//        return view;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
 
-        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(1)).into((ImageView) view);
-
-//        ViewHolder viewHolder = (ViewHolder) view.getTag();
-        Log.v(LOG_TAG, "FLOW MoviesAdapter cursor.getString(1): " + cursor.getString(1));
-//        Picasso.with(this.mContext).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(1)).into(viewHolder.imageView);
+//        Log.v(LOG_TAG, "FLOW MoviesAdapter.bindView image): " + "http://image.tmdb.org/t/p/w185/" + cursor.getString(3));
+        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(3)).into((ImageView) view);
     }
 
     private class ViewHolder {

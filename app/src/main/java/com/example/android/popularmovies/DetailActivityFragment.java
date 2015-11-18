@@ -93,7 +93,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         args.putInt("index", index);
         args.putParcelable(MOVIE_STATE, movie);
         movieId = movie.getId();
-        Log.v(LOG_TAG, "FLOW movieId to create API call: " + movieId);
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.newInstance movieId to create API call: " + movieId);
         f.setArguments(args);
 
         return f;
@@ -149,6 +149,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     }
 
     private void startTaskForVideosAndReviews() {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.startTaskForVideosAndReviews");
         //get movie videos and reviews
         //first check if available in database
         //else get from api with asynctask
@@ -336,6 +337,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
         @Override
         protected String[] doInBackground(String... params) {
+            Log.v(LOG_TAG, "FLOW FetchMoviesVideosReviewsTask.doInBackground");
             String movieId = params[0];
 
             String videosJson = getVideos(movieId);
