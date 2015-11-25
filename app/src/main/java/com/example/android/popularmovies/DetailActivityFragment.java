@@ -109,16 +109,12 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             movie = getArguments().getParcelable(MOVIE_STATE);
             assert movie != null;
             Log.v(LOG_TAG, "onCreateView OriginalTitle From Parcelable: " + movie.getOriginalTitle());
-//            startTaskForVideosAndReviews();
             populateView(rootView, movie);
         }
 
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra(MOVIE_STATE)) {
             Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView intent.hasExtra(MOVIE_STATE");
-//            movie = intent.getParcelableExtra(MOVIE_STATE);
-//            assert movie != null;
-//            startTaskForVideosAndReviews();
             Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView movie.toString(): " + movie.toString());
             populateView(rootView, movie);
         }
@@ -130,7 +126,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             public void onClick(View v) {
                 Log.v(LOG_TAG, "View.OnClickListener onClick: ");
                 if (movie != null) {
-//                    movie = getArguments().getParcelable(MOVIE_STATE);
                     Log.v(LOG_TAG, "View.OnClickListener onClick movie is: " + movie.getOriginalTitle());
                     long movieId = addMovie(movie);
                 }
@@ -150,8 +145,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     private void startTaskForVideosAndReviews() {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.startTaskForVideosAndReviews");
-        //get movie videos and reviews
-        //first check if available in database
+        //TODO get movie videos and reviews
+        //BUT first check if available in database
         //else get from api with asynctask
         FetchMoviesVideosReviewsTask task = new FetchMoviesVideosReviewsTask();
         task.execute(String.valueOf(movie.getId()));
@@ -459,29 +454,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         }
 
         private String[] getVidoesDataFromJson(String moviesJsonStr) throws JSONException {
-//            {
-//                "id": 211672,
-//                    "results": [
-//                {
-//                    "id": "54badb64c3a3684046001c73",
-//                        "iso_639_1": "en",
-//                        "key": "eisKxhjBnZ0",
-//                        "name": "Minions Official Trailer #1 (2015) - Despicable Me Prequel HD",
-//                        "site": "YouTube",
-//                        "size": 720,
-//                        "type": "Trailer"
-//                },
-//                {
-//                    "id": "54e01475c3a36855c7002767",
-//                        "iso_639_1": "en",
-//                        "key": "Myv_Z8CReDU",
-//                        "name": "Trailer 3",
-//                        "site": "YouTube",
-//                        "size": 720,
-//                        "type": "Trailer"
-//                }
-//                ]
-//            }
             final String RESULTS_LIST = "results";
             final String ID = "id";
             final String KEY = "key";
@@ -510,26 +482,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         }
 
         private String[] getReviewsDataFromJson(String moviesJsonStr) throws JSONException {
-//            {
-//                "id": 211672,
-//                    "page": 1,
-//                    "results": [
-//                {
-//                    "id": "55a58e46c3a3682bb2000065",
-//                        "author": "Andres Gomez",
-//                        "content": "The minions are a nice idea and the animation and London recreation is really good, but that's about it.\r\n\r\nThe script is boring and the jokes not really funny.",
-//                        "url": "http://j.mp/1HJpF2h"
-//                },
-//                {
-//                    "id": "55e108c89251416c0b0006dd",
-//                        "author": "movizonline.com",
-//                        "content": "a nice idea and the animation.the new thing in animation field.a movie that every one should like an kid or old man.",
-//                        "url": "http://j.mp/1NETbhK"
-//                }
-//                ],
-//                "total_pages": 1,
-//                    "total_results": 2
-//            }
             final String RESULTS_LIST = "results";
             final String ID = "id";
             final String AUTHOR = "author";
@@ -606,8 +558,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
         assert reviewCursor != null;
         reviewCursor.close();
-        // Wait, that worked?  Yes!
-//        return reviewId;
     }
 
     private void addVideoToDatabase(Video video) {
@@ -619,12 +569,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
                 new String[]{String.valueOf(video.getMovieId())},
                 null);
-//        Cursor videoCursor = getActivity().getContentResolver().query(
-//                MoviesContract.VideoEntry.CONTENT_URI,
-//                null,
-//                null,
-//                null,
-//                null);
 
         if (videoCursor != null && videoCursor.moveToFirst()) {
             int videoIdIndex = videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID);
@@ -656,7 +600,5 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
         assert videoCursor != null;
         videoCursor.close();
-        // Wait, that worked?  Yes!
-//        return videoId;
     }
 }

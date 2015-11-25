@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 
+import com.example.android.popularmovies.data.MoviesContract;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -29,13 +30,14 @@ public class MoviesAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
-//        Log.v(LOG_TAG, "FLOW MoviesAdapter.newView image): " + "http://image.tmdb.org/t/p/w185/" + cursor.getString(3));
+        String poster_path = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH));
+//        Log.v(LOG_TAG, "FLOW MoviesAdapter.newView image): " + "http://image.tmdb.org/t/p/w185/" + poster_path);
 
         ImageView imageView = new ImageView(mContext);
         imageView.setAdjustViewBounds(true);
         imageView.setPadding(0, 0, 0, 0);
 
-        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(3)).into((ImageView) imageView);
+        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + poster_path).into((ImageView) imageView);
         ViewHolder viewHolder = new ViewHolder(imageView);
         imageView.setTag(viewHolder);
 
@@ -44,9 +46,10 @@ public class MoviesAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+        String poster_path = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH));
 
 //        Log.v(LOG_TAG, "FLOW MoviesAdapter.bindView image): " + "http://image.tmdb.org/t/p/w185/" + cursor.getString(3));
-        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + cursor.getString(3)).into((ImageView) view);
+        Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + poster_path).into((ImageView) view);
     }
 
     private class ViewHolder {
