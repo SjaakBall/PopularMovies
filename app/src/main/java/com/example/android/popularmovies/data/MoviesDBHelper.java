@@ -39,6 +39,7 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.ReviewEntry.COLUMN_ID + " INTEGER NOT NULL, " +
                 MoviesContract.ReviewEntry.COLUMN_AUTHOR + " TEXT NOT NULL,  " +
                 MoviesContract.ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
+                MoviesContract.ReviewEntry.COLUMN_URL + " TEXT NOT NULL, " +
                 MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " INTEGER NOT NULL, " +
                 " FOREIGN KEY (" + MoviesContract.ReviewEntry.COLUMN_LOC_KEY + ") REFERENCES " +
                 MoviesContract.MovieEntry.TABLE_MOVIES + "(" + MoviesContract.MovieEntry._ID + ")," +
@@ -53,6 +54,8 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.VideoEntry.COLUMN_KEY + " TEXT NOT NULL UNIQUE ,  " +
                 MoviesContract.VideoEntry.COLUMN_NAME + " TEXT NOT NULL ,  " +
                 MoviesContract.VideoEntry.COLUMN_TYPE + " TEXT NOT NULL,   " +
+                MoviesContract.VideoEntry.COLUMN_SITE + " TEXT NOT NULL,   " +
+                MoviesContract.VideoEntry.COLUMN_SIZE + " TEXT NOT NULL,   " +
                 MoviesContract.VideoEntry.COLUMN_LOC_KEY + " INTEGER NOT NULL, " +
                 " FOREIGN KEY (" + MoviesContract.VideoEntry.COLUMN_LOC_KEY + ") REFERENCES " +
                 MoviesContract.MovieEntry.TABLE_MOVIES + "(" + MoviesContract.MovieEntry._ID + ")," +

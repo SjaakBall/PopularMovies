@@ -161,9 +161,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     }
 
     private void populateGridView() {
+        Log.v(LOG_TAG, "FLOW MainActivityFragment.populateGridView");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-        boolean useCursor;
+        boolean useCursor = false;
         if (sorting.equals("favorites")) {
             Log.v(LOG_TAG, "FLOW populateGridView sorting favorites ");
             Cursor cursor =
@@ -176,17 +177,20 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             gridView.setAdapter(moviesAdapter);
             moviesAdapter.notifyDataSetChanged();
             useCursor = true;
-        } else {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                showDetails(mCurCheckPosition, useCursor);
+            }
+        } else if (movieList != null && movieList.size() > 0) {
             Log.v(LOG_TAG, "FLOW populateGridView sorting NOT favorites  movieList.size():" + movieList.size());
             imageAdapter = new ImageAdapter(this.getActivity());
             imageAdapter.setMovies(movieList);
             imageAdapter.notifyDataSetChanged();
             gridView.setAdapter(imageAdapter);
             useCursor = false;
-        }
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (imageAdapter.getMovies().size() > 0) {
-                showDetails(mCurCheckPosition, useCursor);
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (imageAdapter.getMovies().size() > 0) {
+                    showDetails(mCurCheckPosition, useCursor);
+                }
             }
         }
     }
@@ -316,8 +320,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
         if (!sorting.equals("favorites")) {
             fetchMoviesTask.execute(sorting);
+        } else {
+            populateGridView();
         }
-        populateGridView();
+
     }
 
     @Override

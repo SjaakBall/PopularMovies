@@ -1,12 +1,9 @@
 package com.example.android.popularmovies;
 
 import android.app.Fragment;
-import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
@@ -40,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailActivityFragment extends Fragment {
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private final static String MOVIE_STATE = "movie_state";
     private Movie movie;
@@ -106,8 +103,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         if (getArguments() != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            movie = getArguments().getParcelable(MOVIE_STATE);
-            assert movie != null;
+            Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView Configuration.ORIENTATION_LANDSCAPE");
+//            movie = getArguments().getParcelable(MOVIE_STATE);
+//            assert movie != null;
             Log.v(LOG_TAG, "onCreateView OriginalTitle From Parcelable: " + movie.getOriginalTitle());
             populateView(rootView, movie);
         }
@@ -145,12 +143,113 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     private void startTaskForVideosAndReviews() {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.startTaskForVideosAndReviews");
-        //TODO get movie videos and reviews
-        //BUT first check if available in database
-        //else get from api with asynctask
-        FetchMoviesVideosReviewsTask task = new FetchMoviesVideosReviewsTask();
-        task.execute(String.valueOf(movie.getId()));
+        if (!doesDatabaseContainReviewData(movie.getId()) || !doesDatabaseContainVideoData(movie.getId())) {
+            //get data from api calls
+            FetchMoviesVideosReviewsTask task = new FetchMoviesVideosReviewsTask();
+            task.execute(String.valueOf(movie.getId()));
+        } else {
+            //get data from database
+            if (doesDatabaseContainReviewData(movie.getId())) {
+                movie.setReviews(getReviewsFromDatabase(movie.getId()));
+            }
+            if (doesDatabaseContainVideoData(movie.getId())){
+                movie.setVideos(getVideosFromDatabase(movie.getId()));
+            }
+        }
+    }
 
+    private List<Review> getReviewsFromDatabase(int movieId) {
+        Cursor reviewCursor = getActivity().getContentResolver().query(
+                MoviesContract.ReviewEntry.CONTENT_URI,
+                null,
+                MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(movieId)},
+                null);
+        List<Review> reviewList = new ArrayList<Review>();
+        for (boolean hasItem = reviewCursor.moveToFirst(); hasItem; hasItem = reviewCursor.moveToNext()) {
+            Review review = new Review(reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY)),
+                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry._ID)),
+                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_AUTHOR)),
+                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_CONTENT)),
+                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_URL))
+            );
+            reviewList.add(review);
+        }
+        reviewCursor.close();
+        return reviewList;
+    }
+
+    private List<Video> getVideosFromDatabase(int movieId) {
+
+        Cursor videoCursor = getActivity().getContentResolver().query(
+                MoviesContract.VideoEntry.CONTENT_URI,
+                null,
+                MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(movieId)},
+                null);
+        List<Video> videoList = new ArrayList<Video>();
+        for (boolean hasItem = videoCursor.moveToFirst(); hasItem; hasItem = videoCursor.moveToNext()) {
+            Video video = new Video(videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_KEY)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_NAME)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SITE)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SIZE)),
+                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_TYPE))
+            );
+            videoList.add(video);
+        }
+        videoCursor.close();
+        return videoList;
+    }
+
+    private boolean doesDatabaseContainVideoData(int movieId) {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainVideoData");
+        boolean videoExists = false;
+
+        Cursor videoCursor = getActivity().getContentResolver().query(
+                MoviesContract.VideoEntry.CONTENT_URI,
+                new String[]{MoviesContract.VideoEntry.COLUMN_LOC_KEY},
+                MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(movieId)},
+                null);
+
+        if (videoCursor != null && videoCursor.moveToFirst()) {
+            long loc_key = videoCursor.getLong(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY));
+            if (loc_key > 0) {
+                videoExists = true;
+            }
+        }
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainVideoReviewData video exists: " + videoExists);
+
+//        assert videoCursor != null;
+        videoCursor.close();
+
+        return videoExists;
+    }
+
+    private boolean doesDatabaseContainReviewData(int movieId) {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainReviewData");
+        boolean reviewExists = false;
+        Cursor reviewCursor = getActivity().getContentResolver().query(
+                MoviesContract.ReviewEntry.CONTENT_URI,
+                new String[]{MoviesContract.ReviewEntry.COLUMN_LOC_KEY},
+                MoviesContract.ReviewEntry.COLUMN_LOC_KEY + " = ?",
+                new String[]{String.valueOf(movieId)},
+                null);
+
+        if (reviewCursor != null && reviewCursor.moveToFirst()) {
+            long loc_key = reviewCursor.getLong(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY));
+            if (loc_key > 0) {
+                reviewExists = true;
+            }
+        }
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainVideoReviewData review exists: " + reviewExists);
+
+//        assert reviewCursor != null;
+        reviewCursor.close();
+
+        return reviewExists;
     }
 
     private long addMovie(Movie movie) {
@@ -197,6 +296,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     }
 
     private void populateView(View rootView, Movie movie) {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.populateView");
         ((TextView) rootView.findViewById(R.id.detail_title)).setText(movie.getOriginalTitle());
         ((TextView) rootView.findViewById(R.id.detail_plot_synopsis)).setText(movie.getOverview());
         ((TextView) rootView.findViewById(R.id.detail_user_rating)).setText(movie.getVoteAverage());
@@ -215,33 +315,6 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         if (movie.getReviews() != null && movie.getReviews().size() > 0) {
             populateVideoListView(movie.getVideos());
         }
-//        Log.v(LOG_TAG, "FLOW movie.getVideos().size()" + movie.getVideos().size());
-    }
-
-    // Attach loader to the movies database query
-    // run when loader is initialized
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(),
-                MoviesContract.MovieEntry.CONTENT_URI,
-                null,
-                null,
-                null,
-                null);
-    }
-
-    // Set the cursor in our CursorAdapter once the Cursor is loaded
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        //TODO
-//        mFlavorAdapter.swapCursor(data);
-    }
-
-    // reset CursorAdapter on Loader Reset
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        //TODO
-//        mFlavorAdapter.swapCursor(null);
     }
 
     public class FetchMoviesVideosReviewsTask extends AsyncTask<String, Void, String[]> {
@@ -335,8 +408,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             Log.v(LOG_TAG, "FLOW FetchMoviesVideosReviewsTask.doInBackground");
             String movieId = params[0];
 
-            String videosJson = getVideos(movieId);
-            String reviewsJson = getReviews(movieId);
+            String videosJson = getVideosFromAPICall(movieId);
+            String reviewsJson = getReviewsFromAPICall(movieId);
 
             try {
                 String[] videos = getVidoesDataFromJson(videosJson);
@@ -353,7 +426,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             return null;
         }
 
-        private String getReviews(String movieId) {
+        private String getReviewsFromAPICall(String movieId) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -403,7 +476,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             return reviewsJsonStr;
         }
 
-        private String getVideos(String movieId) {
+        private String getVideosFromAPICall(String movieId) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -528,11 +601,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 new String[]{String.valueOf(review.getMovieId())},
                 null);
 
-        if (reviewCursor != null && reviewCursor.moveToFirst()) {
-            int reviewIdIndex = reviewCursor.getColumnIndex(MoviesContract.ReviewEntry._ID);
-            if (reviewIdIndex > 0) {
-                reviewId = reviewCursor.getLong(reviewIdIndex);
-            }
+        if (reviewCursor != null &&
+                reviewCursor.moveToFirst() &&
+                reviewCursor.getLong(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY)) > 0) {
             //video exist so do nothing
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
@@ -545,6 +616,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_CONTENT, review.getContent());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_ID, review.getId());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_LOC_KEY, review.getMovieId());
+            reviewValues.put(MoviesContract.ReviewEntry.COLUMN_URL, review.getUrl());
 
             // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(
@@ -570,11 +642,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                 new String[]{String.valueOf(video.getMovieId())},
                 null);
 
-        if (videoCursor != null && videoCursor.moveToFirst()) {
-            int videoIdIndex = videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID);
-            if (videoIdIndex > 0 ) {
-                videoId = videoCursor.getLong(videoIdIndex);
-            }
+        if (videoCursor != null &&
+                videoCursor.moveToFirst() &&
+                videoCursor.getLong(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY)) > 0) {
             //video exist so do nothing
         } else {
             // Now that the content provider is set up, inserting rows of data is pretty simple.
@@ -587,6 +657,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             videoValues.put(MoviesContract.VideoEntry.COLUMN_NAME, video.getName());
             videoValues.put(MoviesContract.VideoEntry.COLUMN_TYPE, video.getType());
             videoValues.put(MoviesContract.VideoEntry.COLUMN_LOC_KEY, video.getMovieId());
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_SITE, video.getSite());
+            videoValues.put(MoviesContract.VideoEntry.COLUMN_SIZE, video.getSize());
 
             // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(

@@ -47,6 +47,7 @@ public class MoviesContract {
         public static final String COLUMN_ID = "id";
         public static final String COLUMN_AUTHOR = "author";
         public static final String COLUMN_CONTENT = "content";
+        public static final String COLUMN_URL = "url";
         public static final String COLUMN_LOC_KEY = "review_id";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_REVIEW).build();
@@ -64,6 +65,8 @@ public class MoviesContract {
         public static final String COLUMN_KEY = "key";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_TYPE = "type";
+        public static final String COLUMN_SITE = "site";
+        public static final String COLUMN_SIZE = "size";
         public static final String COLUMN_LOC_KEY = "video_id";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_VIDEO).build();
