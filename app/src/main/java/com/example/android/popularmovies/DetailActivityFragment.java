@@ -582,7 +582,7 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void populateVideoListView(List<Video> videoList) {
-        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, videoList);
+        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), videoList);
         videoListView.setAdapter(adapter);
     }
 
