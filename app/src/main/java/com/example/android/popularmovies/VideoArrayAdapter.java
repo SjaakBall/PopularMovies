@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -40,12 +39,12 @@ public class VideoArrayAdapter extends ArrayAdapter<Video> {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.rowlayout, parent, false);
-        TextView textView = (TextView) rowView.findViewById(R.id.secondLine);
-        TextView textView1 = (TextView) rowView.findViewById(R.id.firstLine);
+        View rowView = inflater.inflate(R.layout.movie_trailer_item, parent, false);
+//        TextView textView = (TextView) rowView.findViewById(R.id.secondLine);
+//        TextView textView1 = (TextView) rowView.findViewById(R.id.firstLine);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
-        textView1.setText(values.get(position).getName());
-        textView.setText("http://img.youtube.com/vi/" + values.get(position).getKey()+"/0.jpg");
+//        textView1.setText(values.get(position).getName());
+//        textView.setText("http://img.youtube.com/vi/" + values.get(position).getKey()+"/0.jpg");
         Picasso.with(context).load("http://img.youtube.com/vi/" + values.get(position).getKey() + "/0.jpg").into(imageView);
 
         return rowView;

@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -44,6 +45,7 @@ public class DetailActivityFragment extends Fragment {
     private static int movieId;
     private ListView reviewListView;
     private ListView videoListView;
+    private LinearLayout mMovieTrailerContainer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,6 +103,7 @@ public class DetailActivityFragment extends Fragment {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView");
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        mMovieTrailerContainer = (LinearLayout) rootView.findViewById(R.id.trailers_container);
 
         if (getArguments() != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView Configuration.ORIENTATION_LANDSCAPE");
@@ -582,8 +585,30 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void populateVideoListView(List<Video> videoList) {
-        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), videoList);
-        videoListView.setAdapter(adapter);
+//        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), videoList);
+//        videoListView.setAdapter(adapter);
+
+        for (final Video video : videoList) {
+            Log.v(LOG_TAG, "FLOW video " + video.getName());
+            View mMovieTrailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.movie_trailer_item, null);
+
+            mMovieTrailerItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    playYoutubeTrailerIntent(video.getKey());
+                }
+            });
+
+            TextView mMovieTrailerTitle = (TextView) mMovieTrailerItem.findViewById(R.id.movie_trailer_text_title);
+            mMovieTrailerTitle.setText(video.getName());
+
+            mMovieTrailerContainer.addView(mMovieTrailerItem);
+        }
+    }
+
+    private void playYoutubeTrailerIntent(String key) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+        startActivity(intent);
     }
 
     private void populateReviewListView(List<Review> reviewList) {
