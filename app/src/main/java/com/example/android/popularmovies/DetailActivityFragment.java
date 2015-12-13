@@ -1,6 +1,7 @@
 package com.example.android.popularmovies;
 
 import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +42,7 @@ import java.util.List;
 public class DetailActivityFragment extends Fragment {
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private final static String MOVIE_STATE = "movie_state";
+    private static final String KEY_VIDEOS_LIST = "video_state";
     private Movie movie;
     private static int movieId;
     private ListView reviewListView;
@@ -118,8 +121,8 @@ public class DetailActivityFragment extends Fragment {
         }
 
 
-        Button button = (Button) rootView.findViewById(R.id.button_favorite);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button button_favorite = (Button) rootView.findViewById(R.id.button_favorite);
+        button_favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.v(LOG_TAG, "View.OnClickListener onClick: ");
@@ -152,7 +155,7 @@ public class DetailActivityFragment extends Fragment {
             if (doesDatabaseContainReviewData(movie.getId())) {
                 movie.setReviews(getReviewsFromDatabase(movie.getId()));
             }
-            if (doesDatabaseContainVideoData(movie.getId())){
+            if (doesDatabaseContainVideoData(movie.getId())) {
                 movie.setVideos(getVideosFromDatabase(movie.getId()));
             }
         }
@@ -307,13 +310,31 @@ public class DetailActivityFragment extends Fragment {
                 .into(imageView);
 
         reviewListView = (ListView) rootView.findViewById(R.id.reviewlistview);
-        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
+//        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
 
         if (movie.getReviews() != null && movie.getReviews().size() > 0) {
             populateReviewListView(movie.getReviews());
         }
-        if (movie.getReviews() != null && movie.getReviews().size() > 0) {
-            populateVideoListView(movie.getVideos());
+        if (movie.getVideos() != null && movie.getVideos().size() > 0) {
+//            populateVideoListView(movie.getVideos());
+            //make trailersActivityFragment
+            TrailersActivityFragment trailersActivityFragment = (TrailersActivityFragment) getFragmentManager().findFragmentById(R.id.trailers_fragment_container);
+            if (trailersActivityFragment == null) {
+                Log.v(LOG_TAG, "FLOW DetailActivityFragment TrailersActivityFragment.newInstance");
+                trailersActivityFragment = TrailersActivityFragment.newInstance(movie.getVideos());
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.replace(R.id.tb_details_fragment, trailersActivityFragment);
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft.commit();
+            } else {
+                Log.v(LOG_TAG, "FLOW DetailActivityFragment startActivity(intent)");
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), TrailersActivityFragment.class);
+                Bundle bundle = new Bundle();
+                bundle.putParcelableArrayList(KEY_VIDEOS_LIST, (ArrayList<? extends Parcelable>) movie.getVideos());
+                trailersActivityFragment.setArguments(bundle);
+                startActivity(intent);
+            }
         }
     }
 
@@ -362,7 +383,7 @@ public class DetailActivityFragment extends Fragment {
             }
 
             populateReviewListView(reviewList);
-            populateVideoListView(videoList);
+//            populateVideoListView(videoList);
         }
 
         private URL buildUriVideos(String movieId) {
