@@ -46,6 +46,7 @@ public class DetailActivityFragment extends Fragment {
     private ListView reviewListView;
     private ListView videoListView;
     private LinearLayout mMovieTrailerContainer;
+    private LinearLayout mMovieReviewContainer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,6 +105,7 @@ public class DetailActivityFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mMovieTrailerContainer = (LinearLayout) rootView.findViewById(R.id.trailers_container);
+        mMovieReviewContainer = (LinearLayout) rootView.findViewById(R.id.reviews_container);
 
         if (getArguments() != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView Configuration.ORIENTATION_LANDSCAPE");
@@ -309,8 +311,8 @@ public class DetailActivityFragment extends Fragment {
                 .load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath())
                 .into(imageView);
 
-        reviewListView = (ListView) rootView.findViewById(R.id.reviewlistview);
-        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
+//        reviewListView = (ListView) rootView.findViewById(R.id.reviewlistview);
+//        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
 
         if (movie.getReviews() != null && movie.getReviews().size() > 0) {
             populateReviewListView(movie.getReviews());
@@ -350,7 +352,7 @@ public class DetailActivityFragment extends Fragment {
                         movieStr = movieStr.substring(8);
                         List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                         Review review = new Review(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4));
-//                        Log.v(LOG_TAG, "review: " + review);
+                        Log.v(LOG_TAG, "review: " + review);
                         addReviewToDatabase(review);
                         reviewList.add(review);
                     }
@@ -602,6 +604,9 @@ public class DetailActivityFragment extends Fragment {
             TextView mMovieTrailerTitle = (TextView) mMovieTrailerItem.findViewById(R.id.movie_trailer_text_title);
             mMovieTrailerTitle.setText(video.getName());
 
+            ImageView imageView = (ImageView) mMovieTrailerItem.findViewById(R.id.movie_trailer_image_play);
+            Picasso.with(getActivity()).load("http://img.youtube.com/vi/" + video.getKey() + "/0.jpg").into(imageView);
+
             mMovieTrailerContainer.addView(mMovieTrailerItem);
         }
     }
@@ -612,8 +617,18 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void populateReviewListView(List<Review> reviewList) {
-        final ReviewArrayAdapter adapter = new ReviewArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, reviewList);
-        reviewListView.setAdapter(adapter);
+//        final ReviewArrayAdapter adapter = new ReviewArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, reviewList);
+//        reviewListView.setAdapter(adapter);
+
+        for (final Review review : reviewList){
+            Log.v(LOG_TAG, "FLOW review " + review.getAuthor());
+            View mMovieReviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.movie_review_item, null);
+
+            TextView mMovieTrailerTitle = (TextView) mMovieReviewItem.findViewById(R.id.movie_review_text);
+            mMovieTrailerTitle.setText(review.getContent());
+
+            mMovieReviewContainer.addView(mMovieReviewItem);
+        }
     }
 
     private void addReviewToDatabase(Review review) {

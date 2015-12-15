@@ -16,5 +16,6 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="movie_state">movie_state</string>
     <string name="movie_trailer_play_button">play</string>
+    <string name="play">play</string>
 
 </resources>
