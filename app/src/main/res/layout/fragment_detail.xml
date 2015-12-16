@@ -99,21 +99,25 @@
                 android:paddingTop="15dp"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="14sp" />
-            <!--<View-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="1dp"-->
-                <!--android:background="@android:color/darker_gray"-->
-                <!--android:paddingLeft="15dp"-->
-                <!--android:paddingRight="15dp"-->
-                <!--android:paddingTop="15dp"/>-->
 
-            <EditText
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:paddingTop="15dp"
+                android:layout_marginTop="15dp" />
+
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/trailersTitle"
                 android:text="Trailers"
                 android:paddingLeft="15dp"
-                android:paddingRight="15dp" />
+                android:paddingRight="15dp"
+                android:textSize="@dimen/abc_text_size_title_material"
+                android:textIsSelectable="false" />
 
             <!--<ListView xmlns:android="http://schemas.android.com/apk/res/android"-->
                 <!--android:id="@+id/videolistview"-->
@@ -155,13 +159,23 @@
 
             </LinearLayout>
 
-            <EditText
+            <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="15dp"
+                android:layout_marginTop="15dp" />
+
+            <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/reviewsTitle"
             android:text="Reviews"
             android:paddingLeft="15dp"
-            android:paddingRight="15dp" />
+            android:paddingRight="15dp"
+                android:textSize="@dimen/abc_text_size_title_material" />
 
         </LinearLayout>
 
