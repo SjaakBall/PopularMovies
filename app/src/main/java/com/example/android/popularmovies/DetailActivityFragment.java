@@ -11,6 +11,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -83,6 +86,7 @@ public class DetailActivityFragment extends Fragment {
                 startTaskForVideosAndReviews();
             }
         }
+        setHasOptionsMenu(true);
     }
 
     public static DetailActivityFragment newInstance(int index, Movie movie) {
@@ -139,11 +143,50 @@ public class DetailActivityFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_detail, menu);
+    }
+
+    @Override
     public void onResume() {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.onResume");
         super.onResume();
         //TODO
         //call task and within task populate view
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_settings");
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                return true;
+
+            case R.id.action_play:
+                Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_play");
+                if (movieId != 0 && movieId > 0) {
+                    Cursor videoCursor = getActivity().getContentResolver().query(
+                            MoviesContract.VideoEntry.CONTENT_URI,
+                            new String[]{MoviesContract.VideoEntry.COLUMN_KEY},
+                            MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                            new String[]{String.valueOf(movieId)},
+                            null);
+
+                    if (videoCursor != null && videoCursor.moveToFirst()) {
+                        String key = videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_KEY));
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+                        startActivity(intent);
+                    }
+                }
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
     }
 
     private void startTaskForVideosAndReviews() {
@@ -157,7 +200,7 @@ public class DetailActivityFragment extends Fragment {
             if (doesDatabaseContainReviewData(movie.getId())) {
                 movie.setReviews(getReviewsFromDatabase(movie.getId()));
             }
-            if (doesDatabaseContainVideoData(movie.getId())){
+            if (doesDatabaseContainVideoData(movie.getId())) {
                 movie.setVideos(getVideosFromDatabase(movie.getId()));
             }
         }
@@ -620,7 +663,7 @@ public class DetailActivityFragment extends Fragment {
 //        final ReviewArrayAdapter adapter = new ReviewArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, reviewList);
 //        reviewListView.setAdapter(adapter);
 
-        for (final Review review : reviewList){
+        for (final Review review : reviewList) {
             Log.v(LOG_TAG, "FLOW review " + review.getAuthor());
             View mMovieReviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.movie_review_item, null);
 

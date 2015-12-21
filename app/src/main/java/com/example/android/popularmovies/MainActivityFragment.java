@@ -77,7 +77,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             movieList = new ArrayList<>();
 //            updateMovies();
         }
-        setHasOptionsMenu(true);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            setHasOptionsMenu(true);
+        }
     }
 
     @Override
@@ -197,12 +199,37 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this.getActivity(), SettingsActivity.class));
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_settings");
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                return true;
+
+            case R.id.action_play:
+                Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_play");
+                if (movieList != null && movieList.size() > 0) {
+                    int movieId = movieList.get(0).getId();
+                    Cursor videoCursor = getActivity().getContentResolver().query(
+                            MoviesContract.VideoEntry.CONTENT_URI,
+                            new String[]{MoviesContract.VideoEntry.COLUMN_KEY},
+                            MoviesContract.VideoEntry.COLUMN_LOC_KEY + " = ?",
+                            new String[]{String.valueOf(movieId)},
+                            null);
+
+                    if (videoCursor != null && videoCursor.moveToFirst()) {
+                        String key = videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_KEY));
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
+                        startActivity(intent);
+                    }
+                }
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -323,7 +350,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         } else {
             populateGridView();
         }
-
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.android.popularmovies;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 public class DetailActivity extends AppCompatActivity {
@@ -28,5 +29,7 @@ public class DetailActivity extends AppCompatActivity {
             finish();
             return;
         }
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
     }
 }
