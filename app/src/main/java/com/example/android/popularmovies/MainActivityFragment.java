@@ -3,6 +3,7 @@ package com.example.android.popularmovies;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -56,6 +57,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private final static String MOVIES_STATE = "movies_state";
     private final static String MOVIE_STATE = "movie_state";
+
+
+    private int mProgressStatus = 0;
 
     private ImageAdapter imageAdapter;
     private MoviesAdapter moviesAdapter;
@@ -371,11 +375,30 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
+    public class FetchMoviesTask extends AsyncTask<String, Integer, String[]> {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
         private final String PERSONAL_API_KEY = getResources().getString(R.string.movie_api_key);
+
+        ProgressDialog dailog;
+
+        protected void onPreExecute()
+        {
+            //example of setting up something
+            dailog=new ProgressDialog(getContext());
+            dailog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            dailog.setMax(0);
+            dailog.show();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            mProgressStatus = values[0];
+            dailog.incrementProgressBy(mProgressStatus);
+            Log.v(LOG_TAG, "onProgressUpdate.mProgressStatus: " + mProgressStatus);
+        }
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -409,6 +432,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 Log.v(LOG_TAG, "builtUri.toString(): " + builtUri.toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept-Encoding", "identity");
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
@@ -490,6 +514,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
             String[] resultStrs = new String[moviesArray.length()];
 
+            mProgressStatus = 0;
             for (int i = 0; i < moviesArray.length(); i++) {
 
                 JSONObject movieJSONObject = moviesArray.getJSONObject(i);
@@ -500,7 +525,11 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 String vote_average = movieJSONObject.getString(VOTE_AVERAGE) != null && movieJSONObject.getString(VOTE_AVERAGE).length() > 0 ? movieJSONObject.getString(VOTE_AVERAGE) : "no vote average value";
                 String release_date = movieJSONObject.getString(RELEASE_DATE) != null && movieJSONObject.getString(RELEASE_DATE).length() > 0 ? movieJSONObject.getString(RELEASE_DATE) : "no release date value";
                 resultStrs[i] = id + "-!--" + original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
+
+//                Log.v(LOG_TAG, "publishProgress.mProgressStatus: " + (int) (((double) i / (double) moviesArray.length()) * 100));
+                publishProgress(new Integer[]{(int) (((double) i / (double) moviesArray.length()) * 100)});
             }
+            dailog.dismiss();
 
             return resultStrs;
         }
