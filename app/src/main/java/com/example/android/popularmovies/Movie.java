@@ -3,15 +3,21 @@ package com.example.android.popularmovies;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.List;
+
 public class Movie implements Parcelable {
 
+    private int id;
     private String originalTitle;
     private String posterPath;
     private String overview;
     private String voteAverage;
     private String releaseDate;
+    private List<Video> videos;
+    private List<Review> reviews;
 
-    public Movie(String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate) {
+    public Movie(int id, String originalTitle, String posterPath, String overview, String voteAverage, String releaseDate) {
+        this.id = id;
         this.originalTitle = originalTitle;
         this.posterPath = posterPath;
         this.overview = overview;
@@ -20,6 +26,7 @@ public class Movie implements Parcelable {
     }
 
     protected Movie(Parcel in) {
+        id = in.readInt();
         originalTitle = in.readString();
         posterPath = in.readString();
         overview = in.readString();
@@ -38,6 +45,14 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getOriginalTitle() {
         return originalTitle;
@@ -82,11 +97,14 @@ public class Movie implements Parcelable {
     @Override
     public String toString() {
         return "Movie{" +
-                "originalTitle='" + originalTitle + '\'' +
+                "id=" + id +
+                ", originalTitle='" + originalTitle + '\'' +
                 ", posterPath='" + posterPath + '\'' +
                 ", overview='" + overview + '\'' +
                 ", voteAverage='" + voteAverage + '\'' +
                 ", releaseDate='" + releaseDate + '\'' +
+                ", videos=" + videos +
+                ", reviews=" + reviews +
                 '}';
     }
 
@@ -97,10 +115,27 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
         dest.writeString(originalTitle);
         dest.writeString(posterPath);
         dest.writeString(overview);
         dest.writeString(voteAverage);
         dest.writeString(releaseDate);
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
+    }
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
     }
 }

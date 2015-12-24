@@ -34,6 +34,7 @@ public class ImageAdapter extends BaseAdapter {
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
+//        Log.v(LOG_TAG, "FLOW ImageAdapter.getView");
         ImageView imageView;
         if (convertView == null) {
             imageView = new ImageView(mContext);
