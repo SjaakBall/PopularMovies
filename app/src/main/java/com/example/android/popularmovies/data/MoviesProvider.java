@@ -7,11 +7,9 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-/**
- * Created by JanHerman on 26/10/2015.
- */
 public class MoviesProvider extends ContentProvider {
     private static final String LOG_TAG = MoviesProvider.class.getSimpleName();
     private static final UriMatcher sUriMatcher = buildUriMatcher();
@@ -52,7 +50,7 @@ public class MoviesProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
             // All Movies selected
@@ -132,7 +130,7 @@ public class MoviesProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
@@ -156,7 +154,7 @@ public class MoviesProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         Uri returnUri;
         switch (sUriMatcher.match(uri)) {
@@ -201,7 +199,7 @@ public class MoviesProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         int numDeleted;
@@ -230,9 +228,9 @@ public class MoviesProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        int numUpdated = 0;
+        int numUpdated;
 
         if (contentValues == null) {
             throw new IllegalArgumentException("Cannot have null content values");

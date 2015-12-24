@@ -19,7 +19,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MoviesContract;
@@ -44,10 +43,9 @@ import java.util.List;
 public class DetailActivityFragment extends Fragment {
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private final static String MOVIE_STATE = "movie_state";
+    private final static String FAVORITES_STATE = "favorites_state";
     private Movie movie;
     private static int movieId;
-    private ListView reviewListView;
-    private ListView videoListView;
     private LinearLayout mMovieTrailerContainer;
     private LinearLayout mMovieReviewContainer;
 
@@ -113,8 +111,6 @@ public class DetailActivityFragment extends Fragment {
 
         if (getArguments() != null && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Log.v(LOG_TAG, "FLOW DetailActivityFragment.onCreateView Configuration.ORIENTATION_LANDSCAPE");
-//            movie = getArguments().getParcelable(MOVIE_STATE);
-//            assert movie != null;
             Log.v(LOG_TAG, "onCreateView OriginalTitle From Parcelable: " + movie.getOriginalTitle());
             populateView(rootView, movie);
         }
@@ -134,7 +130,7 @@ public class DetailActivityFragment extends Fragment {
                 Log.v(LOG_TAG, "View.OnClickListener onClick: ");
                 if (movie != null) {
                     Log.v(LOG_TAG, "View.OnClickListener onClick movie is: " + movie.getOriginalTitle());
-                    long movieId = addMovie(movie);
+                    addMovie(movie);
                 }
             }
         });
@@ -144,15 +140,13 @@ public class DetailActivityFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_detail, menu);
+        inflater.inflate(R.menu.settings_menu, menu);
     }
 
     @Override
     public void onResume() {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.onResume");
         super.onResume();
-        //TODO
-        //call task and within task populate view
     }
 
     @Override
@@ -160,7 +154,7 @@ public class DetailActivityFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.action_settings:
                 Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_settings");
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                startActivity(new Intent(getActivity(), SettingsActivity.class).putExtra(FAVORITES_STATE, doesDatabaseContainMoviesData()));
                 return true;
 
             case R.id.action_play:
@@ -178,12 +172,13 @@ public class DetailActivityFragment extends Fragment {
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
                         startActivity(intent);
                     }
+                    assert videoCursor != null;
+                    videoCursor.close();
                 }
                 return true;
 
             default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
+
                 return super.onOptionsItemSelected(item);
 
         }
@@ -192,11 +187,9 @@ public class DetailActivityFragment extends Fragment {
     private void startTaskForVideosAndReviews() {
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.startTaskForVideosAndReviews");
         if (!doesDatabaseContainReviewData(movie.getId()) || !doesDatabaseContainVideoData(movie.getId())) {
-            //get data from api calls
             FetchMoviesVideosReviewsTask task = new FetchMoviesVideosReviewsTask();
             task.execute(String.valueOf(movie.getId()));
         } else {
-            //get data from database
             if (doesDatabaseContainReviewData(movie.getId())) {
                 movie.setReviews(getReviewsFromDatabase(movie.getId()));
             }
@@ -214,16 +207,21 @@ public class DetailActivityFragment extends Fragment {
                 new String[]{String.valueOf(movieId)},
                 null);
         List<Review> reviewList = new ArrayList<Review>();
-        for (boolean hasItem = reviewCursor.moveToFirst(); hasItem; hasItem = reviewCursor.moveToNext()) {
-            Review review = new Review(reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY)),
-                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry._ID)),
-                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_AUTHOR)),
-                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_CONTENT)),
-                    reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_URL))
-            );
-            reviewList.add(review);
+        try {
+            assert reviewCursor != null;
+            for (boolean hasItem = reviewCursor.moveToFirst(); hasItem; hasItem = reviewCursor.moveToNext()) {
+                Review review = new Review(reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY)),
+                        reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry._ID)),
+                        reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_AUTHOR)),
+                        reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_CONTENT)),
+                        reviewCursor.getString(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_URL))
+                );
+                reviewList.add(review);
+            }
+        } finally {
+            assert reviewCursor != null;
+            reviewCursor.close();
         }
-        reviewCursor.close();
         return reviewList;
     }
 
@@ -236,19 +234,49 @@ public class DetailActivityFragment extends Fragment {
                 new String[]{String.valueOf(movieId)},
                 null);
         List<Video> videoList = new ArrayList<Video>();
-        for (boolean hasItem = videoCursor.moveToFirst(); hasItem; hasItem = videoCursor.moveToNext()) {
-            Video video = new Video(videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_KEY)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_NAME)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SITE)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SIZE)),
-                    videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_TYPE))
-            );
-            videoList.add(video);
+        try {
+            assert videoCursor != null;
+            for (boolean hasItem = videoCursor.moveToFirst(); hasItem; hasItem = videoCursor.moveToNext()) {
+                Video video = new Video(videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry._ID)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_KEY)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_NAME)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SITE)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_SIZE)),
+                        videoCursor.getString(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_TYPE))
+                );
+                videoList.add(video);
+            }
+        } finally {
+            assert videoCursor != null;
+            videoCursor.close();
         }
-        videoCursor.close();
         return videoList;
+    }
+
+    private boolean doesDatabaseContainMoviesData() {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainMoviesData");
+        boolean favoritesAvailable = false;
+
+        Cursor moviesCursor = getActivity().getContentResolver().query(
+                MoviesContract.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        if (moviesCursor != null && moviesCursor.moveToFirst()) {
+            String id = moviesCursor.getString(moviesCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID));
+            if (id != null && id.length()>0) {
+                favoritesAvailable = true;
+            }
+        }
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainMoviesData favorites Available: " + favoritesAvailable);
+
+        assert moviesCursor != null;
+        moviesCursor.close();
+
+        return favoritesAvailable;
     }
 
     private boolean doesDatabaseContainVideoData(int movieId) {
@@ -270,7 +298,7 @@ public class DetailActivityFragment extends Fragment {
         }
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainVideoReviewData video exists: " + videoExists);
 
-//        assert videoCursor != null;
+        assert videoCursor != null;
         videoCursor.close();
 
         return videoExists;
@@ -294,7 +322,7 @@ public class DetailActivityFragment extends Fragment {
         }
         Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainVideoReviewData review exists: " + reviewExists);
 
-//        assert reviewCursor != null;
+        assert reviewCursor != null;
         reviewCursor.close();
 
         return reviewExists;
@@ -302,7 +330,6 @@ public class DetailActivityFragment extends Fragment {
 
     private long addMovie(Movie movie) {
         long movieId;
-        // First, check if the movie with this id exists in the db
         Cursor movieCursor = getActivity().getContentResolver().query(
                 MoviesContract.MovieEntry.CONTENT_URI,
                 new String[]{MoviesContract.MovieEntry.COLUMN_ID},
@@ -314,12 +341,8 @@ public class DetailActivityFragment extends Fragment {
             int movieIdIndex = movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID);
             movieId = movieCursor.getLong(movieIdIndex);
         } else {
-            // Now that the content provider is set up, inserting rows of data is pretty simple.
-            // First create a ContentValues object to hold the data you want to insert.
             ContentValues movieValues = new ContentValues();
 
-            // Then add the data, along with the corresponding name of the data type,
-            // so the content provider knows what kind of value is being inserted.
             movieValues.put(MoviesContract.MovieEntry.COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
             movieValues.put(MoviesContract.MovieEntry.COLUMN_OVERVIEW, movie.getOverview());
             movieValues.put(MoviesContract.MovieEntry.COLUMN_POSTER_PATH, movie.getPosterPath());
@@ -327,19 +350,17 @@ public class DetailActivityFragment extends Fragment {
             movieValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVERAGE, movie.getVoteAverage());
             movieValues.put(MoviesContract.MovieEntry.COLUMN_ID, movie.getId());
 
-            // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(
                     MoviesContract.MovieEntry.buildMoviesUri(movie.getId()),
                     movieValues
             );
 
-            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
             movieId = ContentUris.parseId(insertedUri);
         }
 
         assert movieCursor != null;
         movieCursor.close();
-        // Wait, that worked?  Yes!
+
         return movieId;
     }
 
@@ -353,9 +374,6 @@ public class DetailActivityFragment extends Fragment {
         Picasso.with(getActivity())
                 .load("http://image.tmdb.org/t/p/w185/" + movie.getPosterPath())
                 .into(imageView);
-
-//        reviewListView = (ListView) rootView.findViewById(R.id.reviewlistview);
-//        videoListView = (ListView) rootView.findViewById(R.id.videolistview);
 
         if (movie.getReviews() != null && movie.getReviews().size() > 0) {
             populateReviewListView(movie.getReviews());
@@ -381,13 +399,12 @@ public class DetailActivityFragment extends Fragment {
             if (results != null) {
                 videoList = new ArrayList<Video>();
                 reviewList = new ArrayList<Review>();
-                for (int i = 0; i < results.length; i++) {
-                    String movieStr = results[i];
+                for (String result : results) {
+                    String movieStr = result;
                     if (movieStr.startsWith("|video|")) {
                         movieStr = movieStr.substring(7);
                         List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                         Video video = new Video(list.get(0), list.get(1), list.get(2), list.get(3), list.get(4), list.get(5), list.get(6));
-//                        Log.v(LOG_TAG, "video; " + video);
                         addVideoToDatabase(video);
                         videoList.add(video);
                     }
@@ -546,7 +563,7 @@ public class DetailActivityFragment extends Fragment {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
+                    buffer.append(line).append("\n");
                 }
 
                 if (buffer.length() == 0) {
@@ -555,8 +572,6 @@ public class DetailActivityFragment extends Fragment {
                 videosJsonStr = buffer.toString();
             } catch (MalformedURLException mue) {
                 Log.e(LOG_TAG, "Error ", mue);
-            } catch (ProtocolException pe) {
-                Log.e(LOG_TAG, "Error ", pe);
             } catch (IOException ioe) {
                 Log.e(LOG_TAG, "Error ", ioe);
             } finally {
@@ -597,7 +612,6 @@ public class DetailActivityFragment extends Fragment {
                 String size = movieJSONObject.getString(SIZE) != null && movieJSONObject.getString(SIZE).length() > 0 ? movieJSONObject.getString(SIZE) : "no size value";
                 String type = movieJSONObject.getString(TYPE) != null && movieJSONObject.getString(TYPE).length() > 0 ? movieJSONObject.getString(TYPE) : "no type value";
                 resultStrs[i] = "|video|" + movieId + "-!--" + id + "-!--" + key + "-!--" + name + "-!--" + site + "-!--" + size + "-!--" + type;
-//                Log.v(LOG_TAG, "video resultStrs[i]" + resultStrs[i]);
             }
             return resultStrs;
         }
@@ -621,7 +635,6 @@ public class DetailActivityFragment extends Fragment {
                 String content = movieJSONObject.getString(CONTENT) != null && movieJSONObject.getString(CONTENT).length() > 0 ? movieJSONObject.getString(CONTENT) : "no content value";
                 String url = movieJSONObject.getString(URL) != null && movieJSONObject.getString(URL).length() > 0 ? movieJSONObject.getString(URL) : "no url value";
                 resultStrs[i] = "|review|" + movieId + "-!--" + id + "-!--" + author + "-!--" + content + "-!--" + url;
-//                Log.v(LOG_TAG, "review resultStrs[i]" + resultStrs[i]);
             }
             return resultStrs;
         }
@@ -630,11 +643,9 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void populateVideoListView(List<Video> videoList) {
-//        final VideoArrayAdapter adapter = new VideoArrayAdapter(getActivity(), videoList);
-//        videoListView.setAdapter(adapter);
 
         for (final Video video : videoList) {
-            Log.v(LOG_TAG, "FLOW video " + video.getName());
+//            Log.v(LOG_TAG, "FLOW video " + video.getName());
             View mMovieTrailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.movie_trailer_item, null);
 
             mMovieTrailerItem.setOnClickListener(new View.OnClickListener() {
@@ -660,11 +671,9 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void populateReviewListView(List<Review> reviewList) {
-//        final ReviewArrayAdapter adapter = new ReviewArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, reviewList);
-//        reviewListView.setAdapter(adapter);
 
         for (final Review review : reviewList) {
-            Log.v(LOG_TAG, "FLOW review " + review.getAuthor());
+//            Log.v(LOG_TAG, "FLOW review " + review.getAuthor());
             View mMovieReviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.movie_review_item, null);
 
             TextView mMovieTrailerTitle = (TextView) mMovieReviewItem.findViewById(R.id.movie_review_text);
@@ -675,8 +684,7 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void addReviewToDatabase(Review review) {
-        long reviewId;
-        // First, check if the movie with this id exists in the db
+
         Cursor reviewCursor = getActivity().getContentResolver().query(
                 MoviesContract.ReviewEntry.CONTENT_URI,
                 new String[]{MoviesContract.ReviewEntry.COLUMN_LOC_KEY},
@@ -687,28 +695,20 @@ public class DetailActivityFragment extends Fragment {
         if (reviewCursor != null &&
                 reviewCursor.moveToFirst() &&
                 reviewCursor.getLong(reviewCursor.getColumnIndex(MoviesContract.ReviewEntry.COLUMN_LOC_KEY)) > 0) {
-            //video exist so do nothing
         } else {
-            // Now that the content provider is set up, inserting rows of data is pretty simple.
-            // First create a ContentValues object to hold the data you want to insert.
             ContentValues reviewValues = new ContentValues();
 
-            // Then add the data, along with the corresponding name of the data type,
-            // so the content provider knows what kind of value is being inserted.
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_AUTHOR, review.getAuthor());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_CONTENT, review.getContent());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_ID, review.getId());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_LOC_KEY, review.getMovieId());
             reviewValues.put(MoviesContract.ReviewEntry.COLUMN_URL, review.getUrl());
 
-            // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(
                     MoviesContract.ReviewEntry.CONTENT_URI,
                     reviewValues
             );
-
-            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
-            reviewId = ContentUris.parseId(insertedUri);
+            ContentUris.parseId(insertedUri);
         }
 
         assert reviewCursor != null;
@@ -716,8 +716,7 @@ public class DetailActivityFragment extends Fragment {
     }
 
     private void addVideoToDatabase(Video video) {
-        long videoId;
-        // First, check if the movie with this id exists in the db
+
         Cursor videoCursor = getActivity().getContentResolver().query(
                 MoviesContract.VideoEntry.CONTENT_URI,
                 new String[]{MoviesContract.VideoEntry.COLUMN_LOC_KEY},
@@ -728,14 +727,9 @@ public class DetailActivityFragment extends Fragment {
         if (videoCursor != null &&
                 videoCursor.moveToFirst() &&
                 videoCursor.getLong(videoCursor.getColumnIndex(MoviesContract.VideoEntry.COLUMN_LOC_KEY)) > 0) {
-            //video exist so do nothing
         } else {
-            // Now that the content provider is set up, inserting rows of data is pretty simple.
-            // First create a ContentValues object to hold the data you want to insert.
             ContentValues videoValues = new ContentValues();
 
-            // Then add the data, along with the corresponding name of the data type,
-            // so the content provider knows what kind of value is being inserted.
             videoValues.put(MoviesContract.VideoEntry.COLUMN_KEY, video.getKey());
             videoValues.put(MoviesContract.VideoEntry.COLUMN_NAME, video.getName());
             videoValues.put(MoviesContract.VideoEntry.COLUMN_TYPE, video.getType());
@@ -743,14 +737,11 @@ public class DetailActivityFragment extends Fragment {
             videoValues.put(MoviesContract.VideoEntry.COLUMN_SITE, video.getSite());
             videoValues.put(MoviesContract.VideoEntry.COLUMN_SIZE, video.getSize());
 
-            // Finally, insert movie data into the database.
             Uri insertedUri = getActivity().getContentResolver().insert(
                     MoviesContract.VideoEntry.CONTENT_URI,
                     videoValues
             );
-
-            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
-            videoId = ContentUris.parseId(insertedUri);
+            ContentUris.parseId(insertedUri);
         }
 
         assert videoCursor != null;

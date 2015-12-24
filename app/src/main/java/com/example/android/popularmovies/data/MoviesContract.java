@@ -5,9 +5,6 @@ import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-/**
- * Created by JanHerman on 26/10/2015.
- */
 public class MoviesContract {
     public static final String CONTENT_AUTHORITY = "com.example.android.popularmovies.app";
 
@@ -18,7 +15,6 @@ public class MoviesContract {
         // table name
         public static final String TABLE_MOVIES = "movie";
         // columns
-//        public static final String _ID = "_id";
         public static final String COLUMN_ID = "movie_id";
         public static final String COLUMN_ORIGINAL_TITLE = "original_title";
         public static final String COLUMN_POSTER_PATH = "poster_path";

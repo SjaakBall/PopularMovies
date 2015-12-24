@@ -5,9 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-/**
- * Created by JanHerman on 26/10/2015.
- */
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
 

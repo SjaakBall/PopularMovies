@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +56,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private final static String MOVIES_STATE = "movies_state";
     private final static String MOVIE_STATE = "movie_state";
-
+    private final static String FAVORITES_STATE = "favorites_state";
 
     private int mProgressStatus = 0;
 
@@ -67,6 +66,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     private List<Movie> movieList = null;
     boolean mDualPane;
     int mCurCheckPosition = 0;
+    private String preference = "";
 
     public MainActivityFragment() {
     }
@@ -79,10 +79,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             movieList = savedInstanceState.getParcelableArrayList(MOVIES_STATE);
         } else {
             movieList = new ArrayList<>();
-//            updateMovies();
-        }
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-//            setHasOptionsMenu(true);
         }
     }
 
@@ -94,7 +90,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.settings_menu, menu);
     }
 
     @Override
@@ -141,7 +137,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         );
                         Log.v(LOG_TAG, "FLOW setOnItemClickListener movie.toString()" + movie.toString());
                     }
-
+                    assert movieCursor != null;
+                    movieCursor.close();
 
                 } else {
                     movie = (Movie) imageAdapter.getItem(position);
@@ -170,7 +167,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         Log.v(LOG_TAG, "FLOW MainActivityFragment.populateGridView");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-        boolean useCursor = false;
         if (sorting.equals("favorites")) {
             Log.v(LOG_TAG, "FLOW populateGridView sorting favorites ");
             Cursor cursor =
@@ -182,9 +178,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             moviesAdapter = new MoviesAdapter(getActivity(), cursor, 0, 0);
             gridView.setAdapter(moviesAdapter);
             moviesAdapter.notifyDataSetChanged();
-            useCursor = true;
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                showDetails(mCurCheckPosition, useCursor);
+                showDetails(mCurCheckPosition, true);
             }
         } else if (movieList != null && movieList.size() > 0) {
             Log.v(LOG_TAG, "FLOW populateGridView sorting NOT favorites  movieList.size():" + movieList.size());
@@ -192,10 +187,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             imageAdapter.setMovies(movieList);
             imageAdapter.notifyDataSetChanged();
             gridView.setAdapter(imageAdapter);
-            useCursor = false;
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 if (imageAdapter.getMovies().size() > 0) {
-                    showDetails(mCurCheckPosition, useCursor);
+                    showDetails(mCurCheckPosition, false);
                 }
             }
         }
@@ -206,7 +200,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         switch (item.getItemId()) {
             case R.id.action_settings:
                 Log.v(LOG_TAG, "FLOW MainActivity.onOptionsItemSelected action_settings");
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                startActivity(new Intent(getActivity(), SettingsActivity.class).putExtra(FAVORITES_STATE, doesDatabaseContainMoviesData()));
                 return true;
 
             case R.id.action_play:
@@ -225,14 +219,24 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + key));
                         startActivity(intent);
                     }
+                    assert videoCursor != null;
+                    videoCursor.close();
                 }
                 return true;
 
             default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
 
+        }
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (!doesDatabaseContainMoviesData()) {
+            menu.getItem(1).setEnabled(false);
+        }else {
+            menu.getItem(1).setEnabled(true);
         }
     }
 
@@ -249,7 +253,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         Log.v(LOG_TAG, "FLOW MainActivityFragment.onPause");
     }
 
-    // These are the Contacts rows that we will retrieve.
     static final String[] MOVIES_SUMMARY_PROJECTION = new String[]{
             COLUMN_ID,
             COLUMN_ORIGINAL_TITLE,
@@ -278,7 +281,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mCurCheckPosition = index;
         Log.v(LOG_TAG, "FLOW MainActivityFragment.showDetails & index : " + index);
 
-        Movie movie = null;
+        Movie movie;
 
         if (useCursor) {
             movie = getMovieFromDatabase(index);
@@ -333,6 +336,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                     movieCursor.getString(movieCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE)));
             Log.v(LOG_TAG, "FLOW MainActivityFragment.getMovieFromDatabase columnName: " + movie.toString());
         }
+        assert movieCursor != null;
+        movieCursor.close();
         return movie;
     }
 
@@ -344,16 +349,52 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         outState.putParcelableArrayList(MOVIES_STATE, (ArrayList<? extends Parcelable>) movieList);
     }
 
+    private boolean doesDatabaseContainMoviesData() {
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainMoviesData");
+        boolean favoritesAvailable = false;
+
+        Cursor moviesCursor = getActivity().getContentResolver().query(
+                MoviesContract.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        if (moviesCursor != null && moviesCursor.moveToFirst()) {
+            String id = moviesCursor.getString(moviesCursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_ID));
+            if (id != null && id.length()>0) {
+                favoritesAvailable = true;
+            }
+        }
+        Log.v(LOG_TAG, "FLOW DetailActivityFragment.doesDatabaseContainMoviesData favorites Available: " + favoritesAvailable);
+
+        assert moviesCursor != null;
+        moviesCursor.close();
+
+        return favoritesAvailable;
+    }
+
     private void updateMovies() {
         Log.v(LOG_TAG, "FLOW MainActivityFragment.updateMovies");
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sorting = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
-        if (!sorting.equals("favorites")) {
-            fetchMoviesTask.execute(sorting);
+        if (preference.equals("")) {
+            if (!sorting.equals("favorites")) {
+                fetchMoviesTask.execute(sorting);
+            } else {
+                populateGridView();
+            }
+        } else if (preference.equals(sorting)) {
+            //do nothing
         } else {
-            populateGridView();
+            if (!sorting.equals("favorites")) {
+                fetchMoviesTask.execute(sorting);
+            } else {
+                populateGridView();
+            }
         }
+        preference = sorting;
     }
 
     @Override
@@ -383,10 +424,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
         ProgressDialog dailog;
 
-        protected void onPreExecute()
-        {
-            //example of setting up something
-            dailog=new ProgressDialog(getContext());
+        protected void onPreExecute() {
+            dailog = new ProgressDialog(getContext());
             dailog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             dailog.setMax(0);
             dailog.show();
@@ -397,7 +436,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             super.onProgressUpdate(values);
             mProgressStatus = values[0];
             dailog.incrementProgressBy(mProgressStatus);
-            Log.v(LOG_TAG, "onProgressUpdate.mProgressStatus: " + mProgressStatus);
+//            Log.v(LOG_TAG, "onProgressUpdate.mProgressStatus: " + mProgressStatus);
         }
 
         @Override
@@ -437,7 +476,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 urlConnection.connect();
 
                 InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
+                StringBuilder buffer = new StringBuilder();
                 if (inputStream == null) {
                     return null;
                 }
@@ -445,7 +484,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
+                    buffer.append(line).append("\n");
                 }
 
                 if (buffer.length() == 0) {
@@ -454,8 +493,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 moviesJsonStr = buffer.toString();
             } catch (MalformedURLException mue) {
                 Log.e(LOG_TAG, "Error ", mue);
-            } catch (ProtocolException pe) {
-                Log.e(LOG_TAG, "Error ", pe);
             } catch (IOException ioe) {
                 Log.e(LOG_TAG, "Error ", ioe);
             } finally {
@@ -489,8 +526,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             Log.v(LOG_TAG, "FLOW FetchMoviesTask.onPostExecute");
             if (results != null) {
                 movieList = new ArrayList<Movie>();
-                for (int i = 0; i < results.length; i++) {
-                    String movieStr = results[i];
+                for (String movieStr : results) {
                     List<String> list = new ArrayList<String>(Arrays.asList(movieStr.split("-!--")));
                     Movie movie = new Movie(Integer.parseInt(list.get(0)), list.get(1), list.get(2), list.get(3), list.get(4), list.get(5));
                     movieList.add(movie);
@@ -526,8 +562,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 String release_date = movieJSONObject.getString(RELEASE_DATE) != null && movieJSONObject.getString(RELEASE_DATE).length() > 0 ? movieJSONObject.getString(RELEASE_DATE) : "no release date value";
                 resultStrs[i] = id + "-!--" + original_title + "-!--" + poster_path + "-!--" + overview + "-!--" + vote_average + "-!--" + release_date;
 
-//                Log.v(LOG_TAG, "publishProgress.mProgressStatus: " + (int) (((double) i / (double) moviesArray.length()) * 100));
-                publishProgress(new Integer[]{(int) (((double) i / (double) moviesArray.length()) * 100)});
+                publishProgress((int) (((double) i / (double) moviesArray.length()) * 100));
             }
             dailog.dismiss();
 

@@ -1,8 +1,5 @@
 package com.example.android.popularmovies;
 
-/**
- * Created by JanHerman on 13/11/2015.
- */
 public class Video {
     private String movieId;
     private String id;

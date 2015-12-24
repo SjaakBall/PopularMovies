@@ -11,9 +11,6 @@ import android.widget.ImageView;
 import com.example.android.popularmovies.data.MoviesContract;
 import com.squareup.picasso.Picasso;
 
-/**
- * Created by JanHerman on 26/10/2015.
- */
 public class MoviesAdapter extends CursorAdapter {
 
     private static final String LOG_TAG = MoviesAdapter.class.getSimpleName();
@@ -31,7 +28,6 @@ public class MoviesAdapter extends CursorAdapter {
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
         String poster_path = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH));
-//        Log.v(LOG_TAG, "FLOW MoviesAdapter.newView image): " + "http://image.tmdb.org/t/p/w185/" + poster_path);
 
         ImageView imageView = new ImageView(mContext);
         imageView.setAdjustViewBounds(true);
@@ -48,7 +44,6 @@ public class MoviesAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         String poster_path = cursor.getString(cursor.getColumnIndex(MoviesContract.MovieEntry.COLUMN_POSTER_PATH));
 
-//        Log.v(LOG_TAG, "FLOW MoviesAdapter.bindView image): " + "http://image.tmdb.org/t/p/w185/" + cursor.getString(3));
         Picasso.with(context).load("http://image.tmdb.org/t/p/w185/" + poster_path).into((ImageView) view);
     }
 

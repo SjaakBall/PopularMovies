@@ -9,8 +9,6 @@ import android.util.Log;
 public class DetailActivity extends AppCompatActivity {
 
     private final String LOG_TAG = DetailActivity.class.getSimpleName();
-    private final static String MOVIE_STATE = "movie_state";
-    private Movie movie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +22,6 @@ public class DetailActivity extends AppCompatActivity {
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Log.v(LOG_TAG, "FLOW DetailActivity.onCreate ORIENTATION_LANDSCAPE");
-            // If the screen is now in landscape mode, we can show the
-            // dialog in-line with the list so we don't need this activity.
             finish();
             return;
         }
